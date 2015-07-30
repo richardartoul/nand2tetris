@@ -10,9 +10,12 @@
  */
 
 CHIP Mux {
-    IN a, b, sel;
-    OUT out;
+  IN a, b, sel;
+  OUT out;
 
-    PARTS:
-    // Put your code here:
+  PARTS:
+  Not(in=sel, out=NotSel);
+  And(a=a, b=NotSel, out=AandNotSel);
+  And(a=b, b=sel, out=BandSel);
+  Or(a=AandNotSel, b=BandSel, out=out);
 }
