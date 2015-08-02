@@ -11,9 +11,41 @@
  */
 
 CHIP RAM64 {
-    IN in[16], load, address[6];
-    OUT out[16];
+  IN in[16], load, address[6];
+  OUT out[16];
 
-    PARTS:
-    // Put your code here:
+  PARTS:
+
+  //Array of 8 RAM8's
+  RAM8(in=in, load=RAM80Load, address=address[0..2], out=RAM80Out);
+  RAM8(in=in, load=RAM81Load, address=address[0..2], out=RAM81Out);
+  RAM8(in=in, load=RAM82Load, address=address[0..2], out=RAM82Out);
+  RAM8(in=in, load=RAM83Load, address=address[0..2], out=RAM83Out);
+  RAM8(in=in, load=RAM84Load, address=address[0..2], out=RAM84Out);
+  RAM8(in=in, load=RAM85Load, address=address[0..2], out=RAM85Out);
+  RAM8(in=in, load=RAM86Load, address=address[0..2], out=RAM86Out);
+  RAM8(in=in, load=RAM87Load, address=address[0..2], out=RAM87Out);
+
+  //Demultiplexor to load proper RAM8
+  DMux8Way(
+    a=RAM80Load,
+    b=RAM81Load,
+    c=RAM82Load,
+    d=RAM83Load,
+    e=RAM84Load,
+    f=RAM85Load,
+    g=RAM86Load,
+    h=RAM87Load,
+    in=load, sel=address[3..5]);
+
+  Mux8Way16(
+    a=RAM80Out,
+    b=RAM81Out,
+    c=RAM82Out,
+    d=RAM83Out,
+    e=RAM84Out,
+    f=RAM85Out,
+    g=RAM86Out,
+    h=RAM87Out,
+    sel=address[3..5], out=out);
 }
