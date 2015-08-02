@@ -27,20 +27,42 @@
 // if (out < 0) set ng = 1
 
 CHIP ALU {
-    IN  
-        x[16], y[16],  // 16-bit inputs        
-        zx, // zero the x input?
-        nx, // negate the x input?
-        zy, // zero the y input?
-        ny, // negate the y input?
-        f,  // compute out = x + y (if 1) or x & y (if 0)
-        no; // negate the out output?
+  IN  
+    x[16], y[16],  // 16-bit inputs        
+    zx, // zero the x input?
+    nx, // negate the x input?
+    zy, // zero the y input?
+    ny, // negate the y input?
+    f,  // compute out = x + y (if 1) or x & y (if 0)
+    no; // negate the out output?
 
-    OUT 
-        out[16], // 16-bit output
-        zr, // 1 if (out == 0), 0 otherwise
-        ng; // 1 if (out < 0),  0 otherwise
+  OUT 
+    out[16], // 16-bit output
+    zr, // 1 if (out == 0), 0 otherwise
+    ng; // 1 if (out < 0),  0 otherwise
 
-    PARTS:
-   // Put you code here:
+  PARTS:
+
+  //not X and Y
+  Not16(in=x, out=NotX);
+  Not16(in=y, out=NotY);
+
+  //choose appropriate version of x and y based on zx/zy and nx/ny - zero happens before negate
+  Mux4Way16(a=x, b=false, c=NotX, d=true, sel[0]=zx, sel[1]=nx, out=processedX);
+  Mux4Way16(a=y, b=false, c=NotY, d=true, sel[0]=zy, sel[1]=ny, out=processedY);
+
+  //add x and y
+  Add16(a=processedX, b=processedY, out=XaddY);
+
+  //and x and y
+  And16(a=processedX, b=processedY, out=XandY);
+
+  //select between XaddY and XandY
+  Mux16(a=XandY, b=XaddY, sel=f, out=XYOut);
+
+  //not out
+  Not16(in=XYOut, out=NotXYOut);
+
+  //select between out and not out
+  Mux16(a=XYOut, b=NotXYOut, sel=no, out=out);
 }
