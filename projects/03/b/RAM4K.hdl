@@ -11,9 +11,40 @@
  */
 
 CHIP RAM4K {
-    IN in[16], load, address[12];
-    OUT out[16];
+  IN in[16], load, address[12];
+  OUT out[16];
 
-    PARTS:
-    // Put your code here:
+  PARTS:
+  //Array of 8 RAM512's
+  RAM512(in=in, load=RAM5120Load, address=address[0..8], out=RAM5120Out);
+  RAM512(in=in, load=RAM5121Load, address=address[0..8], out=RAM5121Out);
+  RAM512(in=in, load=RAM5122Load, address=address[0..8], out=RAM5122Out);
+  RAM512(in=in, load=RAM5123Load, address=address[0..8], out=RAM5123Out);
+  RAM512(in=in, load=RAM5124Load, address=address[0..8], out=RAM5124Out);
+  RAM512(in=in, load=RAM5125Load, address=address[0..8], out=RAM5125Out);
+  RAM512(in=in, load=RAM5126Load, address=address[0..8], out=RAM5126Out);
+  RAM512(in=in, load=RAM5127Load, address=address[0..8], out=RAM5127Out);
+
+  //Demultiplexor to load proper RAM512
+  DMux8Way(
+    a=RAM5120Load,
+    b=RAM5121Load,
+    c=RAM5122Load,
+    d=RAM5123Load,
+    e=RAM5124Load,
+    f=RAM5125Load,
+    g=RAM5126Load,
+    h=RAM5127Load,
+    in=load, sel=address[9..11]);
+
+  Mux8Way16(
+    a=RAM5120Out,
+    b=RAM5121Out,
+    c=RAM5122Out,
+    d=RAM5123Out,
+    e=RAM5124Out,
+    f=RAM5125Out,
+    g=RAM5126Out,
+    h=RAM5127Out,
+    sel=address[9..11], out=out);
 }
