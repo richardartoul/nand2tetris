@@ -63,6 +63,12 @@ CHIP ALU {
   //not out
   Not16(in=XYOut, out=NotXYOut);
 
-  //select between out and not out
-  Mux16(a=XYOut, b=NotXYOut, sel=no, out=out);
+  //select between out and not out --- also pipe leftmost bit to negative output status
+  Mux16(a=XYOut, b=NotXYOut, sel=no, out=out, out[0..7]=out7, out[8..15]=out15, out[15]=ng);
+
+  //determine if output is zero
+  Or8Way(in=out7, out=Or7);
+  Or8Way(in=out15, out=Or15);
+  Or(a=Or7, b=Or15, out=any0);
+  Not(in=any0, out=zr);
 }
