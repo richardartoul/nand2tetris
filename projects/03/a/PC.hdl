@@ -12,9 +12,22 @@
  */
 
 CHIP PC {
-    IN in[16],load,inc,reset;
-    OUT out[16];
+  IN in[16],load,inc,reset;
+  OUT out[16];
 
-    PARTS:
-    // Put your code here:
+  PARTS:
+  //16 bit register to store counter
+  Register(in=finalValue, load=true, out=RegisterOut, out=out);
+
+  //calculate increment incase inc is true
+  Inc16(in=RegisterOut, out=IncRegister);
+
+  //if inc then increment, else stay same
+  Mux16(a=RegisterOut, b=IncRegister, sel=inc, out=IncOrSame);
+
+  //if load, then set, else stay same
+  Mux16(a=IncOrSame, b=in, sel=load, out=LoadOrSame);
+
+  //if reset, then reset, else stay same
+  Mux16(a=LoadOrSame, b=false, sel=reset, out=finalValue);
 }
