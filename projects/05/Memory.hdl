@@ -23,9 +23,25 @@
  */
 
 CHIP Memory {
-    IN in[16], load, address[15];
-    OUT out[16];
+  IN in[16], load, address[15];
+  OUT out[16];
 
-    PARTS:
-    // Put your code here:
+  PARTS:
+  RAM16K(in=in, load=RAM16Load, address=address[0..13], out=Ram16Out);
+
+  Screen(in=in, load=ScreenLoad, address=address[0..12], out=ScreenOut);
+
+  Keyboard(out=KeyboardOut);
+
+  //if address is below 16384, send to RAM16k, otherwise to screen chip
+  DMux(in=load, sel=address[14], a=RAM16Load, b=ScreenLoad);
+
+  //address corresponds to screen when in[14] === 1 && in[13] === 0
+  Mux16(a=Ram16Out, b=ScreenOut, sel=address[14], out=RamOrScreen);
+  
+  //address corresponds to keyboard when in[13] and in[14] === 1
+  And(a=address[13], b=address[14], out=KeyboardBool);
+
+  //check if it should output from RAM16k/Screen or Keyboard
+  Mux16(a=RamOrScreen, b=KeyboardOut, sel=KeyboardBool, out=out);
 }
