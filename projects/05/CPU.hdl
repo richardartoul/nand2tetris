@@ -26,18 +26,91 @@
  */
 
 CHIP CPU {
+  IN  inM[16],         // M value input  (M = contents of RAM[A])
+      instruction[16], // Instruction for execution
+      reset;           // Signals whether to re-start the current
+                       // program (reset==1) or continue executing
+                       // the current program (reset==0).
 
-    IN  inM[16],         // M value input  (M = contents of RAM[A])
-        instruction[16], // Instruction for execution
-        reset;           // Signals whether to re-start the current
-                         // program (reset==1) or continue executing
-                         // the current program (reset==0).
+  OUT outM[16],        // M value output
+      writeM,          // Write to M? 
+      addressM[15],    // Address in data memory (of M)
+      pc[15];          // address of next instruction
 
-    OUT outM[16],        // M value output
-        writeM,          // Write to M? 
-        addressM[15],    // Address in data memory (of M)
-        pc[15];          // address of next instruction
+  PARTS:
+    //***C instructions***
+    //instruction[13..15] === 1
+    //instruction[12] === a
+    //instruction[2] === j1
+    //instruction[0] === j3
+    //instruction[5] === d1
+    //instruction[3] === d3
+    //instruction[11] === c1
+    //instruction[6] === c6
 
-    PARTS:
-    // Put your code here:
+    //***A instructions***
+    //instruction[15] === 0
+    //instruction[0..14] === address / new value of A
+
+    ALU(
+      x=DRegisterOut,
+      y=AValueOrAddress,
+      //c1
+      zx=instruction[11],
+      nx=instruction[10],
+      zy=instruction[9],
+      ny=instruction[8],
+      f=instruction[7],
+      //c6
+      no=instruction[6],
+
+      out=ALUOut,
+      out=outM,
+      zr=ALUOutIsZero,
+      ng=ALUOutIsNegative
+    );
+
+    //I think load for this should be some type of or between AInstruction and the ALU output
+    Not(in=instruction[15], out=AInstruction);
+    Or(a=AInstruction, b=instruction[5], out=LoadARegister);
+    ARegister(in=NewARegisterValue, load=LoadARegister, out=ARegisterOut, out[0..14]=addressM);
+
+    //load DRegister if not A instruction (instruction[15] === 1) and D2 (instruction[4] ==1)
+    And(a=instruction[15], b=instruction[4], out=LoadDRegister);
+    DRegister(in=ALUOut, load=LoadDRegister, out=DRegisterOut);
+
+    //If instruction is an AInstruction then pipe it to ARegister, otherwise pipe ALU output
+    //instruction[15] is only 0 in the case of an A instruction
+    Mux16(a=instruction, b=ALUOut, sel=instruction[15], out=NewARegisterValue);
+
+    //mux will either output the value stored in A or the valued stored in M[A]
+    //if instruction[12] (a) === 1, then use M[A], otherwise use [A]
+    Mux16(a=ARegisterOut, b=inM, sel=instruction[12], out=AValueOrAddress);
+
+    //jump if j1 & ALUOut < 0
+    And(a=instruction[2], b=ALUOutIsNegative, out=JumpNegative);
+    
+    //jump if j2 and ALUOut === 0
+    And(a=instruction[1], b=ALUOutIsZero, out=JumpZero);
+
+    //jump if j3 & ALUOut > 0
+    Not(in=ALUOutIsNegative, out=NotNegative);
+    Not(in=ALUOutIsZero, out=NotZero);
+    And(a=NotNegative, b=NotZero, out=NegativeAndZero);
+    And(a=instruction[0], b=NegativeAndZero, out=JumpPositive);
+
+    //jump if any of the conditions are true
+    Or(a=JumpNegative, b=JumpZero, out=JumpNegativeOrZero);
+    Or(a=JumpNegativeOrZero, b=JumpPositive, out=Jump);
+
+    //Make sure its a c instruction, not an A instruction before jumping
+    And(a=instruction[15], b=Jump, out=jumpInstruction);
+    
+    //If you don't jump, increment
+    Not(in=jumpInstruction, out=PCInc);
+
+    PC(in=ARegisterOut, load=jumpInstruction, inc=PCInc, reset=reset, out[0..14]=pc);
+
+    //writeM should be true if not A instruction && d3 === true
+    And(a=instruction[15], b=instruction[3], out=writeM);
 }
