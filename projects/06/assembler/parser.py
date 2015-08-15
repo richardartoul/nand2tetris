@@ -1,13 +1,26 @@
 # import regular expression library
 import re
 
-# reads the .asm file
-script = open('./testScript.txt', 'r').read();
-# parses it into an array where each index represents a line
-lines = script.split('\n');
+# needed to handle command line arguments
+import sys
 
-# removes comments and empty lines
-lines = filter(lambda line: not '//' in line and line != '', lines);
+inputFilename = sys.argv[1]
+
+# reads the .asm file
+script = open(inputFilename, 'r').read()
+
+# parses it into an array where each index represents a line
+lines = script.split('\n')
+
+# removes lines with comments and lines that contain nothing but whitespace
+lines = filter(lambda line: (not '//' in line) and (not re.match('^\s*$', line)), lines)
+
+# removes labels
+lines = filter(lambda line: not re.match('\(.*\)', line), lines)
+
+# removes all whitespace from remaining lines
+lines = map(lambda line: re.sub('\s+', '', line), lines)
+
 
 # lookup for predefined symbols
 predefinedSymbols = {
@@ -34,38 +47,39 @@ predefinedSymbols = {
   'KBD':'110000000000000'   
 }
 
-compToBinary: {
-  '0':'101010',
-  '1':'111111',
-  '-1':'111010',
-  'D':'001100',
-  'A':'110000',
-  '!D':'001101',
-  '!A':'110001',
-  '-D':'001111',
-  '-A':'110011',
-  'D+1':'011111',
-  'A+1':'1101111',
-  'D-1':'001110',
-  'A-1':'110010',
-  'D+A':'000010',
-  'D-A':'010011',
-  'A-D':'000111',
-  'D&A':'000000',
-  'D|A':'010101',
-  'M':'110000',
-  '!M':'110001',
-  '-M':'110011',
-  'M+1':'110111',
-  'M-1':'110010',
-  'D+M':'000010',
-  'D-M':'010011',
-  'M-D':'000111',
-  'D&M':'000000',
-  'D|M':'010101'
+compToBinary = {
+  '0':'0101010',
+  '1':'0111111',
+  '-1':'0111010',
+  'D':'0001100',
+  'A':'0110000',
+  '!D':'0001101',
+  '!A':'0110001',
+  '-D':'0001111',
+  '-A':'0110011',
+  'D+1':'0011111',
+  'A+1':'0110111',
+  'D-1':'0001110',
+  'A-1':'0110010',
+  'D+A':'0000010',
+  'D-A':'0010011',
+  'A-D':'0000111',
+  'D&A':'0000000',
+  'D|A':'0010101',
+  'M':'1110000',
+  '!M':'1110001',
+  '-M':'1110011',
+  'M+1':'1110111',
+  'M-1':'1110010',
+  'D+M':'1000010',
+  'D-M':'1010011',
+  'M-D':'1000111',
+  'D&M':'1000000',
+  'D|M':'1010101'
 }
 
 destToBinary = {
+  #this is valid python haha
   '':'000',
   'M':'001',
   'D':'010',
@@ -93,16 +107,49 @@ def translator(line):
   if (aInstruction):
     # group(1) will contain memory address reference
     memoryReference = aInstruction.group(1)
-    print aInstruction.group(1)
+    print memoryReference
+
+    # if its a predefined symbols
     if (memoryReference in predefinedSymbols):
-        print predefinedSymbols[aInstruction.group(1)]
+        print '0' + predefinedSymbols[memoryReference]
+        return '0' + predefinedSymbols[memoryReference]
+    elif (re.match('[0-9]+', memoryReference)):
+      # converts integer to properly formatted 15-digit binary
+      print '0' + format(int(memoryReference),'015b')
+      return '0' + format(int(memoryReference),'015b')
+
   # all C instructions
   else:
-    print 'c:' + line
+    print line
+    if (line == '0'):
+      print 1 + compToBinary['0'] + destToBinary['0'] + jumpToBinary['0'] 
+    # This regular expression could be much more coplicated if you
+    # wanted to do error handling, but I only need enough to break
+    # them into their respective pieces
+    cInstruction = re.search('([^=;]*)?(=)?([^;]*)?;?(.*)?', line)
+    equalsSymbol = cInstruction.group(2)
+    if (equalsSymbol):
+      dest = cInstruction.group(1)
+      comp = cInstruction.group(3)
+    else:
+      comp = cInstruction.group(1)
+      dest = ''
+    jump = cInstruction.group(4)
+    binaryCInstruction = compToBinary[comp] + destToBinary[dest] + jumpToBinary[jump]
+    print '111' + binaryCInstruction
+    return '111' + binaryCInstruction
 
+# maps all the assembly commands to binary
 binary = map(translator, lines)
+
+# removes any invalid commands
+binary = filter(lambda binary: isinstance(binary, str), binary)
+
 print binary
 
-binary = []
+outputFilename = inputFilename.replace('.asm', '.hack')
 
-print lines
+f = open(outputFilename, 'w')
+# write the binary instructions to a file, separating them with new lines
+f.write('\n'.join(binary))
+f.close()
