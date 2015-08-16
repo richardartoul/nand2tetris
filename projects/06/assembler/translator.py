@@ -37,6 +37,6 @@ def translator(line):
       comp = cInstruction.group(1)
       dest = ''
     jump = cInstruction.group(4)
-    
+
     binaryCInstruction = compToBinary[comp] + destToBinary[dest] + jumpToBinary[jump]
     return '111' + binaryCInstruction

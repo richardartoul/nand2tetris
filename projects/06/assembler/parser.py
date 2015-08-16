@@ -4,6 +4,12 @@ import re
 # needed to handle command line arguments
 import sys
 
+# import label managing function
+from symbols import convertLabels
+
+# import variable managing function
+from symbols import convertVariables
+
 # import the translation function
 from translator import translator
 
@@ -16,21 +22,28 @@ script = open(inputFilename, 'r').read()
 lines = script.split('\n')
 
 # removes lines with comments and lines that contain nothing but whitespace
-lines = filter(lambda line: (not '//' in line) and (not re.match('^\s*$', line)), lines)
+lines = filter(lambda line: (not line.startswith('//')) and (not re.match('^\s*$', line)), lines)
+
+# removes comments after commands
+lines = map(lambda line: line.split('//', 1)[0], lines)
 
 # removes labels
-lines = filter(lambda line: not re.match('\(.*\)', line), lines)
+# lines = filter(lambda line: not re.match('\(.*\)', line), lines)
 
 # removes all whitespace from remaining lines
 lines = map(lambda line: re.sub('\s+', '', line), lines)
 
+labels = [convertLabels(lineNumber, line) for lineNumber, line in enumerate(lines)]
+# removes labels now that they've been processed
+labels = filter(lambda line: isinstance(line, str), labels)
+
+variables = [convertVariables(lineNumber, line) for lineNumber, line in enumerate(labels)]
+
 # maps all the assembly commands to binary
-binary = map(translator, lines)
+binary = map(translator, variables)
 
-# removes any invalid commands
+# removes any invalid commands and labels
 binary = filter(lambda binary: isinstance(binary, str), binary)
-
-print binary
 
 outputFilename = inputFilename.replace('.asm', '.hack')
 
