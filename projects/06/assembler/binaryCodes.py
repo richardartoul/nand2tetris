@@ -23,6 +23,7 @@ predefinedSymbols = {
   'KBD':'110000000000000'   
 }
 
+# lookup for computation part of C instruction
 compToBinary = {
   '0':'0101010',
   '1':'0111111',
@@ -54,6 +55,7 @@ compToBinary = {
   'D|M':'1010101'
 }
 
+# lookup for destination part of C instruction
 destToBinary = {
   '':'000',
   'M':'001',
@@ -65,6 +67,7 @@ destToBinary = {
   'AMD':'111'
 }
 
+# lookup for jump part of C instruction
 jumpToBinary = {
   '':'000',
   'JGT':'001',
