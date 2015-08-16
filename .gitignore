@@ -2,3 +2,4 @@
 *.sh
 *.dat
 testScript.txt
+*.pyc
