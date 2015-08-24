@@ -14,7 +14,7 @@ def writer(vmLine):
       return arithmetic_logic_mapper[vmLine] + sp_manager['decrementSP']
 
   # Handles pushing values into stack from segments
-  pushFinder = re.search('push(constant|argument|local|this|that|temp)(.*)', vmLine)
+  pushFinder = re.search('push(constant|argument|local|this|that|temp|pointer)(.*)', vmLine)
   if (pushFinder):
     segment = pushFinder.group(1)
     index = pushFinder.group(2)
@@ -23,7 +23,7 @@ def writer(vmLine):
     return assemblyCommands
 
   # Handles popping values from stack into segments
-  popFinder = re.search('pop(argument|local|this|that|temp)(.*)', vmLine)
+  popFinder = re.search('pop(argument|local|this|that|temp|pointer)(.*)', vmLine)
   if (popFinder):
     segment = popFinder.group(1)
     index = popFinder.group(2)

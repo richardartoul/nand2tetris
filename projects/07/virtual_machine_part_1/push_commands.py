@@ -6,6 +6,11 @@ from sp_manager import sp_manager
 def pushSegment(index, segment):
   return '@%s\nD=A\n@%s\nA=M+D\nD=M\n%s\nM=D' %(index, segment, sp_manager['SP'])
 
+# Instead of performing pointer arithmetic, simply pushes the data onto the stack
+# from an address obtained by adding the index to a predetermined offset
+def pushOffset(index, offset):
+  return '@%s\nD=M\n%s\nM=D' %(str(int(index)+offset), sp_manager['SP'])
+
 # maps the segment that is being pushed from to the proper assembly code for doing so
 push_commands = {
   # constant is handled differently because there is no segment or offset
@@ -15,7 +20,8 @@ push_commands = {
   'argument'  : (lambda index: pushSegment(index, 'ARG')), 
   'this'      : (lambda index: pushSegment(index, 'THIS')), 
   'that'      : (lambda index: pushSegment(index, 'THAT')),
-  # temp is handled differently because pointer arithmetic doesn't need to be performed
-  # the offset is known, its simply 5 + the index
-  'temp'      : (lambda index: '@%s\nD=M\n%s\nM=D' %(str(int(index)+5), sp_manager['SP']))
+  # temp and pointer are handled differently because pointer arithmetic doesn't need to be performed,
+  # the offset is known. Its simply 3/5 + the index
+  'temp'      : (lambda index: pushOffset(index,5)),
+  'pointer'   : (lambda index: pushOffset(index,3))
 }
