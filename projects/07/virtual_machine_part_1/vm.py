@@ -1,17 +1,21 @@
 # handle command line arguments
 import sys
 
-# import file parsing function
-from parser import parse
+# used to get list of files in directory
+import os
 
-inputFilename = sys.argv[1]
+# function that calls parser and writes output to file
+from parse_write import parse_write
 
-# parses file and converts virtual machine to assembly
-vmCode = parse(inputFilename)
+fileOrPath = sys.argv[1]
 
-outputFilename = inputFilename.replace('.vm', '.asm')
-
-# write assembly to file
-f = open(outputFilename, 'w')
-f.write('\n'.join(vmCode))
-f.close()
+# if argument is a directory, convert all .vm files to .asm
+try:
+  # if listdir throws an exception, then the argument was a file not a directory
+  fileList = os.listdir(fileOrPath)
+  for item in fileList:
+    if (item.endswith('.vm')):
+      parse_write(fileOrPath + '/' + item)
+# if argument is a single file, convert it to .as
+except:
+  parse_write(fileOrPath)

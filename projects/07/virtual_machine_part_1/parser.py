@@ -11,6 +11,7 @@ from writer import writer
 import os
 
 def parse(filename):
+
   # read .vm file
   vmCode = open(filename, 'r').read()
 
