@@ -1,5 +1,6 @@
 import re
 from push_commands import push_commands 
+from pop_commands import pop_commands
 from sp_manager import sp_manager
 from arithmetic_logic_commands import arithmetic_logic_mapper
 
@@ -12,12 +13,22 @@ def writer(vmLine):
     else:
       return arithmetic_logic_mapper[vmLine] + sp_manager['decrementSP']
 
-  # Handles pushing constants
-  pushConstantFinder = re.search('pushconstant(.*)', vmLine)
-  if (pushConstantFinder):
-    constant = pushConstantFinder.group(1)
+  # Handles pushing values into stack from segments
+  pushFinder = re.search('push(constant|argument|local|this|that|temp)(.*)', vmLine)
+  if (pushFinder):
+    segment = pushFinder.group(1)
+    index = pushFinder.group(2)
     # Increment SP after pushing
-    assemblyCommands = push_commands['pushConstant'](constant) + '\n' + sp_manager['incrementSP']
+    assemblyCommands = push_commands[segment](index) + '\n' + sp_manager['incrementSP']
+    return assemblyCommands
+
+  # Handles popping values from stack into segments
+  popFinder = re.search('pop(argument|local|this|that|temp)(.*)', vmLine)
+  if (popFinder):
+    segment = popFinder.group(1)
+    index = popFinder.group(2)
+    # Decrement SP after popping
+    assemblyCommands = pop_commands[segment](index) + '\n' + sp_manager['decrementSP']
     return assemblyCommands
 
   # In a properly written VM program, this should never trigger, but returns the original line if
