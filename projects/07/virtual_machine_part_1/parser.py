@@ -7,6 +7,9 @@ from relative_instruction import relative_instruction
 # convers virtual machine to assembly
 from writer import writer
 
+# used to get file basename from path
+import os
+
 def parse(filename):
   # read .vm file
   vmCode = open(filename, 'r').read()
@@ -24,7 +27,8 @@ def parse(filename):
   vmCode = map(lambda line: re.sub('\s+', '', line), vmCode)
 
   # converts Virtual Machine instructions to Assembly
-  vmCode = map(writer, vmCode)
+  # filename is used to push and pop static segment
+  vmCode = map(lambda line: writer(line, os.path.basename(filename)), vmCode)
 
   # converts array of strings of assembly instructions into one long set of instructions
   vmCode = reduce(lambda commandList, allCommands: commandList + allCommands, vmCode)

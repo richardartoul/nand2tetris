@@ -21,5 +21,6 @@ pop_commands = {
   # temp and pointer are handled differently because pointer arithmetic doesn't need to be performed,
   # the offset is known. Its simply 3/5 + the index
   'temp'      : (lambda index: popOffset(index, 5)),
-  'pointer'   : (lambda index: popOffset(index, 3))
+  'pointer'   : (lambda index: popOffset(index, 3)),
+  'static'    : (lambda index, filename: '%s\nD=M\n@%s\nM=D' %(sp_manager['SP-1'], '%s.%s' % (filename, index)))
 }

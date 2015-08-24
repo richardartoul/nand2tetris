@@ -23,5 +23,7 @@ push_commands = {
   # temp and pointer are handled differently because pointer arithmetic doesn't need to be performed,
   # the offset is known. Its simply 3/5 + the index
   'temp'      : (lambda index: pushOffset(index,5)),
-  'pointer'   : (lambda index: pushOffset(index,3))
+  'pointer'   : (lambda index: pushOffset(index,3)),
+  # static is handled differently because its dependent on the filename
+  'static'    : (lambda index, filename: '@%s\nD=M\n%s\nM=D' %('%s.%s' % (filename, index), sp_manager['SP']))
 }
