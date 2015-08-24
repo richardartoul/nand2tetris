@@ -6,13 +6,12 @@ from parser import parse
 
 inputFilename = sys.argv[1]
 
+# parses file and converts virtual machine to assembly
 vmCode = parse(inputFilename)
-
-print vmCode
 
 outputFilename = inputFilename.replace('.vm', '.asm')
 
+# write assembly to file
 f = open(outputFilename, 'w')
-# write the binary instructions to a file, separating them with new lines
 f.write('\n'.join(vmCode))
 f.close()

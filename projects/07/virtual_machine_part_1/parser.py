@@ -1,9 +1,10 @@
 # import regular expression library
 import re
 
-# import end of program instructions
+# converts relative jump instructions to absolute jump instructions
+from relative_instruction import relative_instruction
 
-
+# convers virtual machine to assembly
 from writer import writer
 
 def parse(filename):
@@ -24,5 +25,17 @@ def parse(filename):
 
   # converts Virtual Machine instructions to Assembly
   vmCode = map(writer, vmCode)
+
+  # converts array of strings of assembly instructions into one long set of instructions
+  vmCode = reduce(lambda commandList, allCommands: commandList + allCommands, vmCode)
+
+  # converts string of commands to array where each item is a string that contains a single command
+  vmCode = vmCode.split('\n')
+
+  # last item is a blank string
+  vmCode.pop()
+
+  # convert relative jump instruction commands to absolute jump instructions
+  vmCode = map(lambda (index, line): relative_instruction(index, line), enumerate(vmCode))
 
   return vmCode
