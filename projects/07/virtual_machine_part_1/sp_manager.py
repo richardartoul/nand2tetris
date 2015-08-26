@@ -1,8 +1,8 @@
 # Since the stack pointer is constantly being updated, this dictionary contains the assembly
 # commands for frequently used manipulations of SP
 sp_manager = {
-  'incrementSP'   : '@SP\nM=M+1\n',
-  'decrementSP'   : '@SP\nM=M-1\n',
+  'incrementSP'   : '@SP\nM=M+1',
+  'decrementSP'   : '@SP\nM=M-1',
   'SP'            : '@SP\nA=M',
 }
 

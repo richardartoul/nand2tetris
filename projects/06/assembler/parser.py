@@ -27,9 +27,6 @@ lines = filter(lambda line: (not line.startswith('//')) and (not re.match('^\s*$
 # removes comments after commands
 lines = map(lambda line: line.split('//', 1)[0], lines)
 
-# removes labels
-# lines = filter(lambda line: not re.match('\(.*\)', line), lines)
-
 # removes all whitespace from remaining lines
 lines = map(lambda line: re.sub('\s+', '', line), lines)
 
