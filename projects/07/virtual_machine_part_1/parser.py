@@ -25,7 +25,10 @@ def parse(filename):
   vmCode = map(lambda line: line.split('//', 1)[0], vmCode)
 
   # removes all whitespace from remaining lines
-  vmCode = map(lambda line: re.sub('\s+', '', line), vmCode)
+  # vmCode = map(lambda line: re.sub('\s+', '', line), vmCode)
+
+  # Trim whitespace off edges of lines
+  vmCode = map(lambda line: line.strip(), vmCode)
 
   # converts Virtual Machine instructions to Assembly
   # filename is used to push and pop static segment

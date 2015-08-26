@@ -15,7 +15,7 @@ def writer(vmLine, filename):
       return arithmetic_logic_mapper[vmLine] + sp_manager['decrementSP'] + '\n'
 
   # Handles pushing values into stack from segments
-  pushFinder = re.search('push(constant|argument|local|this|that|temp|pointer|static)(.*)', vmLine)
+  pushFinder = re.search('push\s*(constant|argument|local|this|that|temp|pointer|static)\s*(.*)', vmLine)
   if (pushFinder):
     segment = pushFinder.group(1)
     index = pushFinder.group(2)
@@ -26,7 +26,7 @@ def writer(vmLine, filename):
     return push_commands[segment](index) + '\n' + sp_manager['incrementSP'] + '\n'
 
   # Handles popping values from stack into segments
-  popFinder = re.search('pop(argument|local|this|that|temp|pointer|static)(.*)', vmLine)
+  popFinder = re.search('pop\s*(argument|local|this|that|temp|pointer|static)\s*(.*)', vmLine)
   if (popFinder):
     segment = popFinder.group(1)
     index = popFinder.group(2)
@@ -37,11 +37,15 @@ def writer(vmLine, filename):
     return pop_commands[segment](index) + '\n' + sp_manager['decrementSP'] + '\n'
 
   # Handles Program Flow commands
-  flowFinder = re.search('(label|goto|if-goto)(.*)', vmLine)
+  flowFinder = re.search('(label|goto|if-goto)\s*(.*)', vmLine)
   if (flowFinder):
     flowCommand = flowFinder.group(1)
     flowLabel = flowFinder.group(2)
     return flow_commands[flowCommand](flowLabel) + '\n'
+
+  # Handles Function Calling Commands
+  #functionFinder = re.search('(function|call|return)()')
+
   # In a properly written VM program, this should never trigger, but returns the original line if
   # no code exists to handle it
   return vmLine
