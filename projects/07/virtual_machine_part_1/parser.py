@@ -41,7 +41,7 @@ def parse(filename):
   vmCode = vmCode.split('\n')
 
   # last item is a blank string
-  vmCode.pop()
+  # vmCode.pop()
 
   # convert relative jump instruction commands to absolute jump instructions
   vmCode = map(lambda (index, line): relative_instruction(index, line), enumerate(vmCode))

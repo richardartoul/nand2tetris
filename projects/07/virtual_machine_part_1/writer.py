@@ -2,6 +2,7 @@ import re
 from push_commands import push_commands 
 from pop_commands import pop_commands
 from flow_commands import flow_commands
+from function_commands import function_commands
 from sp_manager import sp_manager
 from arithmetic_logic_commands import arithmetic_logic_mapper
 
@@ -44,7 +45,17 @@ def writer(vmLine, filename):
     return flow_commands[flowCommand](flowLabel) + '\n'
 
   # Handles Function Calling Commands
-  #functionFinder = re.search('(function|call|return)()')
+  functionFinder = re.search('(function|call)\s*([^\s]*)\s*([0-9]*)', vmLine)
+  if (functionFinder):
+    functionCommand = functionFinder.group(1)
+    functionName = functionFinder.group(2)
+    numVars = functionFinder.group(3)
+
+    return function_commands[functionCommand](functionName, numVars)
+
+  # Handles Return Statement
+  if (vmLine == "return"):
+    return function_commands['return']()
 
   # In a properly written VM program, this should never trigger, but returns the original line if
   # no code exists to handle it

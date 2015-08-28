@@ -14,8 +14,6 @@ def popOffset(index, offset):
 
 # maps the segment that is being "popped to" to the proper assembly code for doing so
 pop_commands = {
-  # general purpose that pops a value of the stack and stores it in D so that other functions can use it
-  # 'pop'       : (lambda index: '%s\nD=M' %(index))
   'local'     : (lambda index: popSegment(index, 'LCL')),
   'argument'  : (lambda index: popSegment(index, 'ARG')), 
   'this'      : (lambda index: popSegment(index, 'THIS')), 
