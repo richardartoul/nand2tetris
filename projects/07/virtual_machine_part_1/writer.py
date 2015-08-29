@@ -51,11 +51,11 @@ def writer(vmLine, filename):
     functionName = functionFinder.group(2)
     numVars = functionFinder.group(3)
 
-    return function_commands[functionCommand](functionName, numVars)
+    return function_commands[functionCommand](functionName, numVars) + '\n'
 
   # Handles Return Statement
   if (vmLine == "return"):
-    return function_commands['return']()
+    return function_commands['return']() + '\n'
 
   # In a properly written VM program, this should never trigger, but returns the original line if
   # no code exists to handle it

@@ -23,7 +23,7 @@ arithmetic_logic_mapper = {
   # the commands are written to a file, a function scans through each one (keeping track of the current
   # instruction number), and replaces the relative jumps with absolute jumps. For example, if "$4" shows
   # up on line 4, then it will be replaced with "@8"
-  'eq'  : binary_stack_arithmetic('D=D-M\n@R13\nM=-1\n@$4\nD;JEQ\n@R13\nM=0\n@R13\nD=M'),
-  'gt'  : binary_stack_arithmetic('D=D-M\n@R13\nM=-1\n@$4\nD;JGT\n@R13\nM=0\n@R13\nD=M'),
-  'lt'  : binary_stack_arithmetic('D=D-M\n@R13\nM=-1\n@$4\nD;JLT\n@R13\nM=0\n@R13\nD=M')
+  'eq'  : binary_stack_arithmetic('D=D-M\n@R13\nM=-1\n@$$4\nD;JEQ\n@R13\nM=0\n@R13\nD=M'),
+  'gt'  : binary_stack_arithmetic('D=D-M\n@R13\nM=-1\n@$$4\nD;JGT\n@R13\nM=0\n@R13\nD=M'),
+  'lt'  : binary_stack_arithmetic('D=D-M\n@R13\nM=-1\n@$$4\nD;JLT\n@R13\nM=0\n@R13\nD=M')
 }

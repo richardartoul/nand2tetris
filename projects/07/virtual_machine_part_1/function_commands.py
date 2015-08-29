@@ -2,6 +2,7 @@ from sp_manager import sp_manager
 from itertools import repeat
 from push_commands import push_commands
 from pop_commands import pop_commands
+from flow_commands import flow_commands
 
 def initializeLocalSegmentZero(n):
   n = int(n)
@@ -11,6 +12,8 @@ def initializeLocalSegmentZero(n):
   repeatedString = '';
   # initialize local[0]..local[n-1] to zero
   for counter in range(n):
+    if (counter == 0):
+      repeatedString = repeatedString + '\n'
     repeatedString = repeatedString + '%s\n%s\n' %(push_commands['constant'](0), sp_manager['incrementSP'])
   return repeatedString
 
@@ -20,11 +23,11 @@ def pushReturn(functionName):
 def pushPointer(pointer):
   return '@%s\nD=M\n%s\nM=D\n%s' %(pointer, sp_manager['SP'], sp_manager['incrementSP'])
 
-def pushState():
-  return '%s\n%s\n%s\n%s\n%s' %(pushReturn(), pushPointer('LCL'), pushPointer('ARG'), pushPointer('THIS'), pushPointer('THAT'))
+def pushState(functionName):
+  return '%s\n%s\n%s\n%s\n%s' %(pushReturn(functionName), pushPointer('LCL'), pushPointer('ARG'), pushPointer('THIS'), pushPointer('THAT'))
 
 def repositionARG(numArguments):
-  return '@SP\nD=M\n@ARG\nM=M-D\n@%s\nD=A\n@ARG\nM=M-D' %(sp_manager['SP'], numArguments)
+  return '@SP\nD=M\n@5\nD=D-A\n@%s\nD=D-A\n@ARG\nM=D' %(numArguments)
 
 def repositionLCL():
   return '@SP\nD=M\n@LCL\nM=D'
@@ -63,7 +66,7 @@ def gotoRetAddr():
   return '@retAddr\nA=M\n0;JMP'
 
 function_commands = {
-  'function': (lambda functionName, numLocalVariables: '(%s)\n%s' %(functionName, initializeLocalSegmentZero(numLocalVariables))),
-  'call'    : (lambda functionName, numArguments: '%s\n%s\n%s\n%s' %(pushState(), repositionARGAndLCL(numArguments), flow_commands['goto'](functionName), flow_commands['label'](funcionName + '$return'))),
+  'function': (lambda functionName, numLocalVariables: '(%s)%s' %(functionName, initializeLocalSegmentZero(numLocalVariables))),
+  'call'    : (lambda functionName, numArguments: '%s\n%s\n%s\n%s' %(pushState(functionName), repositionARGAndLCL(numArguments), flow_commands['goto'](functionName), flow_commands['label'](functionName + '$return'))),
   'return'  : (lambda: '%s\n%s\n%s' %(returnSetup(), restoreCallerState(), gotoRetAddr()))
 }
