@@ -44,6 +44,18 @@ def parse(filename):
   # vmCode.pop()
 
   # convert relative jump instruction commands to absolute jump instructions
-  vmCode = map(lambda (index, line): relative_instruction(index, line), enumerate(vmCode))
+  # vmCode = map(lambda (index, line): relative_instruction(index, line), enumerate(vmCode))
+  counter = 0
+  for index, line in enumerate(vmCode):
+    relativeInstructionFinder = re.search('\$\$(.*)', line)
+  
+    if relativeInstructionFinder:
+      relativeInstruction = '@' + str(counter + int(relativeInstructionFinder.group(1)))
+      vmCode[index] = relativeInstruction
+
+    labelFinder = re.search('\(.*\)', line)
+
+    if not labelFinder:
+      counter = counter + 1
 
   return vmCode

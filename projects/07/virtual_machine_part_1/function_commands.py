@@ -3,6 +3,7 @@ from itertools import repeat
 from push_commands import push_commands
 from pop_commands import pop_commands
 from flow_commands import flow_commands
+import random
 
 def initializeLocalSegmentZero(n):
   n = int(n)
@@ -65,8 +66,12 @@ def restoreCallerState():
 def gotoRetAddr():
   return '@retAddr\nA=M\n0;JMP'
 
+def call(functionName, numArguments):
+  functionLabel = functionName + str(random.randrange(100000))
+  return '%s\n%s\n%s\n%s' %(pushState(functionLabel), repositionARGAndLCL(numArguments), flow_commands['goto'](functionName), flow_commands['label'](functionLabel + '$return'))
+
 function_commands = {
   'function': (lambda functionName, numLocalVariables: '(%s)%s' %(functionName, initializeLocalSegmentZero(numLocalVariables))),
-  'call'    : (lambda functionName, numArguments: '%s\n%s\n%s\n%s' %(pushState(functionName), repositionARGAndLCL(numArguments), flow_commands['goto'](functionName), flow_commands['label'](functionName + '$return'))),
+  'call'    : call,
   'return'  : (lambda: '%s\n%s\n%s' %(returnSetup(), restoreCallerState(), gotoRetAddr()))
 }

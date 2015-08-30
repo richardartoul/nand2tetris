@@ -59,4 +59,4 @@ def writer(vmLine, filename):
 
   # In a properly written VM program, this should never trigger, but returns the original line if
   # no code exists to handle it
-  return vmLine
+  return vmLine + '\n'

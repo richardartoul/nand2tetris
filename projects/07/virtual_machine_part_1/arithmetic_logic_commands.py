@@ -18,10 +18,10 @@ arithmetic_logic_mapper = {
   # There is a small trick here: Normally, the equality operators would require creating
   # unique labels and jump commands for each one. For example, if D === 0 then jump to a label
   # then that label would modify the stack and set true, then jump again to resume code. Instead,
-  # I implemented a relative instruction number operator "$". For example, "$4" allows me to jump
+  # I implemented a relative instruction number operator "$$". For example, "$$4" allows me to jump
   # 4 lines of code ahead based on a certain condition. This feature works because right before all
   # the commands are written to a file, a function scans through each one (keeping track of the current
-  # instruction number), and replaces the relative jumps with absolute jumps. For example, if "$4" shows
+  # instruction number), and replaces the relative jumps with absolute jumps. For example, if "$$4" shows
   # up on line 4, then it will be replaced with "@8"
   'eq'  : binary_stack_arithmetic('D=D-M\n@R13\nM=-1\n@$$4\nD;JEQ\n@R13\nM=0\n@R13\nD=M'),
   'gt'  : binary_stack_arithmetic('D=D-M\n@R13\nM=-1\n@$$4\nD;JGT\n@R13\nM=0\n@R13\nD=M'),

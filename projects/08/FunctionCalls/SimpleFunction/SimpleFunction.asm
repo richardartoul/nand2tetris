@@ -13,6 +13,7 @@ A=M
 M=D
 @SP
 M=M+1
+
 @0
 D=A
 @LCL
