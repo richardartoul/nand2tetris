@@ -2,7 +2,7 @@
 import re
 
 # converts relative jump instructions to absolute jump instructions
-from relative_instruction import relative_instruction
+from relative_instruction import map_relative_instructions
 
 # convers virtual machine to assembly
 from writer import writer
@@ -43,19 +43,7 @@ def parse(filename):
   # last item is a blank string
   # vmCode.pop()
 
-  # convert relative jump instruction commands to absolute jump instructions
-  # vmCode = map(lambda (index, line): relative_instruction(index, line), enumerate(vmCode))
-  counter = 0
-  for index, line in enumerate(vmCode):
-    relativeInstructionFinder = re.search('\$\$(.*)', line)
-  
-    if relativeInstructionFinder:
-      relativeInstruction = '@' + str(counter + int(relativeInstructionFinder.group(1)))
-      vmCode[index] = relativeInstruction
-
-    labelFinder = re.search('\(.*\)', line)
-
-    if not labelFinder:
-      counter = counter + 1
+  # maps the relative instructions to absolute jump instruction lines in assembly
+  vmCode = map_relative_instructions(vmCode)
 
   return vmCode
