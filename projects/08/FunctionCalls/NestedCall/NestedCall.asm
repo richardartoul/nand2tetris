@@ -1,5 +1,5 @@
 (Sys.init)
-@Sys.main$return
+@Sys.main9907$return
 D=A
 @SP
 A=M
@@ -48,7 +48,7 @@ D=M
 M=D
 @Sys.main
 0;JMP
-(Sys.main$return)
+(Sys.main9907$return)
 @SP
 A=M
 A=A-1
@@ -68,7 +68,7 @@ A=M
 M=D
 @SP
 M=M+1
-@Sys.add12$return
+@Sys.add1223172$return
 D=A
 @SP
 A=M
@@ -117,7 +117,7 @@ D=M
 M=D
 @Sys.add12
 0;JMP
-(Sys.add12$return)
+(Sys.add1223172$return)
 @SP
 A=M
 A=A-1

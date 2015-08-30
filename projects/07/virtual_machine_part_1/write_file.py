@@ -1,10 +1,10 @@
-from relative_instruction import relative_instruction
+# import file parsing function
+from parser import parse
 
 def write_file(vmCode, filename):
-  outputFilename = filename.replace('.vm', '.asm')
+  # parses file and converts virtual machine to assembly
 
-  # convert relative jump instruction commands to absolute jump instructions
-  vmCode = map(lambda (index, line): relative_instruction(index, line), enumerate(vmCode))
+  outputFilename = filename.replace('.vm', '.asm')
 
   # write assembly to file
   f = open(outputFilename, 'w')

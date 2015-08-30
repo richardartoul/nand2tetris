@@ -10,13 +10,13 @@ from writer import writer
 # used to get file basename from path
 import os
 
-def parse(filename):
+def parse(vmCodeString, filename):
 
   # read .vm file
-  vmCode = open(filename, 'r').read()
+  # vmCode = open(filename, 'r').read()
 
   # parse into array where each index is a line
-  vmCode = vmCode.split('\n')
+  vmCode = vmCodeString.split('\n')
 
   # removes lines with comments and lines that contain nothing but whitespace
   vmCode = filter(lambda line: (not line.startswith('//')) and (not re.match('^\s*$', line)), vmCode)
