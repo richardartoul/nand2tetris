@@ -2,7 +2,7 @@
 D=A
 @SP
 M=D
-@Sys.init40411$return
+@Sys.init54218$return
 D=A
 @SP
 A=M
@@ -51,10 +51,7 @@ D=M
 M=D
 @Sys.init
 0;JMP
-(Sys.init40411$return)
-(WHILESYS)
-@WHILESYS
-0;JMP
+(Sys.init54218$return)
 (Main.fibonacci)
 @0
 D=A
@@ -82,7 +79,7 @@ A=A+1
 D=D-M
 @R13
 M=-1
-@85
+@83
 D;JLT
 @R13
 M=0
@@ -212,7 +209,7 @@ A=A-1
 M=D
 @SP
 M=M-1
-@Main.fibonacci55025$return
+@Main.fibonacci8906$return
 D=A
 @SP
 A=M
@@ -261,7 +258,7 @@ D=M
 M=D
 @Main.fibonacci
 0;JMP
-(Main.fibonacci55025$return)
+(Main.fibonacci8906$return)
 @0
 D=A
 @ARG
@@ -293,7 +290,7 @@ A=A-1
 M=D
 @SP
 M=M-1
-@Main.fibonacci49779$return
+@Main.fibonacci76267$return
 D=A
 @SP
 A=M
@@ -342,7 +339,7 @@ D=M
 M=D
 @Main.fibonacci
 0;JMP
-(Main.fibonacci49779$return)
+(Main.fibonacci76267$return)
 @SP
 A=M
 A=A-1
@@ -429,7 +426,7 @@ A=M
 M=D
 @SP
 M=M+1
-@Main.fibonacci66690$return
+@Main.fibonacci53000$return
 D=A
 @SP
 A=M
@@ -478,7 +475,7 @@ D=M
 M=D
 @Main.fibonacci
 0;JMP
-(Main.fibonacci66690$return)
+(Main.fibonacci53000$return)
 (WHILE)
 @WHILE
 0;JMP

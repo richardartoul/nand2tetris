@@ -2,7 +2,7 @@
 D=A
 @SP
 M=D
-@Sys.init72210$return
+@Sys.init64577$return
 D=A
 @SP
 A=M
@@ -51,10 +51,7 @@ D=M
 M=D
 @Sys.init
 0;JMP
-(Sys.init72210$return)
-(WHILESYS)
-@WHILESYS
-0;JMP
+(Sys.init64577$return)
 (Sys.init)
 @6
 D=A
@@ -70,7 +67,7 @@ A=M
 M=D
 @SP
 M=M+1
-@Class1.set25142$return
+@Class1.set60489$return
 D=A
 @SP
 A=M
@@ -119,7 +116,7 @@ D=M
 M=D
 @Class1.set
 0;JMP
-(Class1.set25142$return)
+(Class1.set60489$return)
 @SP
 A=M
 A=A-1
@@ -142,7 +139,7 @@ A=M
 M=D
 @SP
 M=M+1
-@Class2.set31067$return
+@Class2.set8430$return
 D=A
 @SP
 A=M
@@ -191,7 +188,7 @@ D=M
 M=D
 @Class2.set
 0;JMP
-(Class2.set31067$return)
+(Class2.set8430$return)
 @SP
 A=M
 A=A-1
@@ -200,7 +197,7 @@ D=M
 M=D
 @SP
 M=M-1
-@Class1.get73865$return
+@Class1.get65273$return
 D=A
 @SP
 A=M
@@ -249,8 +246,8 @@ D=M
 M=D
 @Class1.get
 0;JMP
-(Class1.get73865$return)
-@Class2.get95800$return
+(Class1.get65273$return)
+@Class2.get28536$return
 D=A
 @SP
 A=M
@@ -299,7 +296,7 @@ D=M
 M=D
 @Class2.get
 0;JMP
-(Class2.get95800$return)
+(Class2.get28536$return)
 (WHILE)
 @WHILE
 0;JMP
@@ -318,7 +315,7 @@ M=M+1
 A=M
 A=A-1
 D=M
-@StaticsTest.0
+@Class1.vm.0
 M=D
 @SP
 M=M-1
@@ -336,7 +333,7 @@ M=M+1
 A=M
 A=A-1
 D=M
-@StaticsTest.1
+@Class1.vm.1
 M=D
 @SP
 M=M-1
@@ -412,14 +409,14 @@ M=D
 A=M
 0;JMP
 (Class1.get)
-@StaticsTest.0
+@Class1.vm.0
 D=M
 @SP
 A=M
 M=D
 @SP
 M=M+1
-@StaticsTest.1
+@Class1.vm.1
 D=M
 @SP
 A=M
@@ -519,7 +516,7 @@ M=M+1
 A=M
 A=A-1
 D=M
-@StaticsTest.0
+@Class2.vm.0
 M=D
 @SP
 M=M-1
@@ -537,7 +534,7 @@ M=M+1
 A=M
 A=A-1
 D=M
-@StaticsTest.1
+@Class2.vm.1
 M=D
 @SP
 M=M-1
@@ -613,14 +610,14 @@ M=D
 A=M
 0;JMP
 (Class2.get)
-@StaticsTest.0
+@Class2.vm.0
 D=M
 @SP
 A=M
 M=D
 @SP
 M=M+1
-@StaticsTest.1
+@Class2.vm.1
 D=M
 @SP
 A=M

@@ -41,9 +41,6 @@ def parse(vmCodeString, filename):
   vmCode = vmCode.split('\n')
 
   # last item is a blank string
-  # vmCode.pop()
-
-  # maps the relative instructions to absolute jump instruction lines in assembly
-  vmCode = map_relative_instructions(vmCode)
+  vmCode.pop()
 
   return vmCode
