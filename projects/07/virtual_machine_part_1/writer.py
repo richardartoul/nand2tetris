@@ -6,7 +6,11 @@ from function_commands import function_commands
 from sp_manager import sp_manager
 from arithmetic_logic_commands import arithmetic_logic_mapper
 
+# always points to the current function, used to create proper labels
+currentFunction = ''
 def writer(vmLine, filename):
+  global currentFunction
+  
   # Handles stack arithmetic for all lines that are mathematical or logical operators
   if (vmLine in arithmetic_logic_mapper):
     if (vmLine == "not" or vmLine == "neg"):
@@ -42,7 +46,7 @@ def writer(vmLine, filename):
   if (flowFinder):
     flowCommand = flowFinder.group(1)
     flowLabel = flowFinder.group(2)
-    return flow_commands[flowCommand](flowLabel) + '\n'
+    return flow_commands[flowCommand](flowLabel, currentFunction) + '\n'
 
   # Handles Function Calling Commands
   functionFinder = re.search('(function|call)\s*([^\s]*)\s*([0-9]*)', vmLine)
@@ -50,6 +54,10 @@ def writer(vmLine, filename):
     functionCommand = functionFinder.group(1)
     functionName = functionFinder.group(2)
     numVars = functionFinder.group(3)
+
+    # update the currentFunction so that it can be used for label commands
+    if functionCommand == 'function':
+      currentFunction = functionName
 
     return function_commands[functionCommand](functionName, numVars) + '\n'
 

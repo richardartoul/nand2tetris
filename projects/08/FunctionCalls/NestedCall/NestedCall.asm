@@ -2,7 +2,7 @@
 D=A
 @SP
 M=D
-@Sys.init56158$return
+@Sys.init0$return
 D=A
 @SP
 A=M
@@ -51,9 +51,9 @@ D=M
 M=D
 @Sys.init
 0;JMP
-(Sys.init56158$return)
+(Sys.init0$return)
 (Sys.init)
-@Sys.main69139$return
+@Sys.main0$return
 D=A
 @SP
 A=M
@@ -102,7 +102,7 @@ D=M
 M=D
 @Sys.main
 0;JMP
-(Sys.main69139$return)
+(Sys.main0$return)
 @SP
 A=M
 A=A-1
@@ -111,8 +111,8 @@ D=M
 M=D
 @SP
 M=M-1
-(LOOP)
-@LOOP
+(Sys.init$LOOP)
+@Sys.init$LOOP
 0;JMP
 (Sys.main)
 @123
@@ -122,7 +122,7 @@ A=M
 M=D
 @SP
 M=M+1
-@Sys.add125165$return
+@Sys.add120$return
 D=A
 @SP
 A=M
@@ -171,7 +171,7 @@ D=M
 M=D
 @Sys.add12
 0;JMP
-(Sys.add125165$return)
+(Sys.add120$return)
 @SP
 A=M
 A=A-1

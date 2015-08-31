@@ -5,6 +5,14 @@ from pop_commands import pop_commands
 from flow_commands import flow_commands
 import random
 
+# Used to maintain a count of how many times a function has been called
+# So each return statement can be unique to a specific call
+global returnCounter
+
+returnCounter = {
+  
+}
+
 def initializeLocalSegmentZero(n):
   n = int(n)
   # push constant zero, then pop into local segment at appropriate index
@@ -67,8 +75,18 @@ def gotoRetAddr():
   return '@retAddr\nA=M\n0;JMP'
 
 def call(functionName, numArguments):
-  functionLabel = functionName + str(random.randrange(100000))
-  return '%s\n%s\n%s\n%s' %(pushState(functionLabel), repositionARGAndLCL(numArguments), flow_commands['goto'](functionName), flow_commands['label'](functionLabel + '$return'))
+  global returnCounter
+
+  # maintains a running track of number of times a function has been called so that each call
+  # can have a unique return label
+  if (functionName in returnCounter):
+    functionLabel = functionName + str(returnCounter[functionName])
+    returnCounter[functionName] = returnCounter[functionName] + 1
+  else:
+    functionLabel = functionName + '0'
+    returnCounter[functionName] = 1
+
+  return '%s\n%s\n%s\n%s' %(pushState(functionLabel), repositionARGAndLCL(numArguments), '@%s\n0;JMP' %(functionName), '(%s)' %(functionLabel + '$return'))
 
 function_commands = {
   'function': (lambda functionName, numLocalVariables: '(%s)%s' %(functionName, initializeLocalSegmentZero(numLocalVariables))),
