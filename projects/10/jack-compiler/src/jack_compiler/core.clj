@@ -31,10 +31,13 @@
   ; Convert string to lazy sequence of tokens using regex
   (re-seq tokenizer-regex stripped-jack-text))
   
-; (defn compile-class
-;   [code-stream]
-
-;   )  
+(defn compile-class
+  [[current & remaining] xml-output]
+  (conj xml-output "<class>\n")
+  (conj xml-output "<keyword> class </keyword>\n")
+  
+  (conj xml-output "</class>\n")
+  )  
 
 (defn compilation-engine
   "Converts a list of jack tokens to VM code by looping through it recursively
@@ -47,4 +50,4 @@
 (defn -main
   "I don't do a whole lot ... yet."
   [jack-file & args]
-  (compilation-engine (tokenizer (slurp jack-file)) ""))
+  (compilation-engine (tokenizer (slurp jack-file)) []))
