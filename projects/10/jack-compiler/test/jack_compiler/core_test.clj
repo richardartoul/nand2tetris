@@ -58,10 +58,10 @@
 
 (deftest string-constant-regex-test
   (testing "string-constant-regex identifies string constants properly"
-    (is (re-matches string-constant-regex "fasdfsdfasd"))
-    (is (re-matches string-constant-regex "_asfdasdfasd"))
-    (is (re-matches string-constant-regex "5000asdfasd"))
-    (is (re-matches string-constant-regex "asfasdkj&@&A*SD(*ASjd__"))
+    (is (re-matches string-constant-regex "\"fasdfsdfasd\""))
+    (is (re-matches string-constant-regex "\"_asfdasdfasd\""))
+    (is (re-matches string-constant-regex "\"5000asdfasd\""))
+    (is (re-matches string-constant-regex "\"asfasdkj&@&A*SD(*ASjd__\""))
     (is (not (re-matches string-constant-regex "\n\n"))
     (is (not (re-matches string-constant-regex "\"\""))))))
 
