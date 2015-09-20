@@ -13,9 +13,11 @@
 
 (def identifier-regex #"[a-zA-Z_]+[a-zA-Z0-9_]*")
 
+; Combines multiple regex-literals together
 (defn union-re-patterns [& patterns] 
-    (re-pattern (apply str (interpose "|" (map #(str %) patterns)))))
+    (re-pattern (apply str (interpose "|" (map str patterns)))))
 
+; Create a master token regex from all the regex types
 (def tokenizer-regex (union-re-patterns keyword-regex symbol-regex integer-constant-regex string-constant-regex identifier-regex))
 
 (defn tokenizer
@@ -25,13 +27,10 @@
   (def stripped-jack-text (replace jack-text #"//.*" (re-quote-replacement "")))
   ; Remove block comments
   (def stripped-jack-text (replace stripped-jack-text #"/\*\*.*\*/" ""))
-  ; Trim whitespace
-  ; (def stripped-jack-text (replace stripped-jack-text #"\s*" ""))
   
-  ; (println tokenizer-regex)
-  
+  ; Convert string to lazy sequence of tokens using regex
   (def stripped-jack-text (re-seq tokenizer-regex stripped-jack-text))
-  (apply println stripped-jack-text))
+  (println stripped-jack-text))
 
 (defn -main
   "I don't do a whole lot ... yet."
