@@ -29,10 +29,22 @@
   (def stripped-jack-text (replace stripped-jack-text #"/\*\*.*\*/" ""))
   
   ; Convert string to lazy sequence of tokens using regex
-  (def stripped-jack-text (re-seq tokenizer-regex stripped-jack-text))
-  (println stripped-jack-text))
+  (re-seq tokenizer-regex stripped-jack-text))
+  
+; (defn compile-class
+;   [code-stream]
+
+;   )  
+
+(defn compilation-engine
+  "Converts a list of jack tokens to VM code by looping through it recursively
+  and employing a recursive descent tree strategy"
+  [[current & remaining] xml-output]
+  (println current)
+  (if (not (= remaining nil))
+    (compilation-engine remaining xml-output)))
 
 (defn -main
   "I don't do a whole lot ... yet."
   [jack-file & args]
-  (tokenizer (slurp jack-file)))
+  (compilation-engine (tokenizer (slurp jack-file)) ""))
