@@ -62,6 +62,9 @@
     (is (re-matches string-constant-regex "\"_asfdasdfasd\""))
     (is (re-matches string-constant-regex "\"5000asdfasd\""))
     (is (re-matches string-constant-regex "\"asfasdkj&@&A*SD(*ASjd__\""))
-    (is (not (re-matches string-constant-regex "\n\n"))
-    (is (not (re-matches string-constant-regex "\"\""))))))
+    (is (not (re-matches string-constant-regex "\n\n")))))
+
+(deftest compile-class-test
+  (testing "compile-class properly compiles class"
+    (println (compilation-engine ["class" "{" "100" "\"YOLO\"" "main" "class"] []))))
 

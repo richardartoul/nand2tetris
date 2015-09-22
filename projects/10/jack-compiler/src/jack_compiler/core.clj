@@ -2,6 +2,10 @@
   (:gen-class)
   (:use [clojure.string :as str]))
 
+(declare compilation-engine)
+(declare compile-class)
+(declare compilation-functions)
+
 (def keyword-regex #"class|constructor|function|method|field|static|var|int|char|boolean|void|true|false|null|this|let|do|if|else|while|return")
 
 (def symbol-regex #"\{|\}|\(|\)|\[|\]|\.|,|;|\+|-|\*|/|&|\||<|>|=|~")
@@ -27,27 +31,55 @@
   (def stripped-jack-text (replace jack-text #"//.*" (re-quote-replacement "")))
   ; Remove block comments
   (def stripped-jack-text (replace stripped-jack-text #"/\*\*.*\*/" ""))
-  
   ; Convert string to lazy sequence of tokens using regex
   (re-seq tokenizer-regex stripped-jack-text))
   
-(defn compile-class
-  [[current & remaining] xml-output]
-  (conj xml-output "<class>\n")
-  (conj xml-output "<keyword> class </keyword>\n")
-  
-  (conj xml-output "</class>\n")
-  )  
+(defn compile-x
+  "Generic compilation function for known keywords"
+  [remaining xml-output xml-head xml-tail]
+   (if (not (= xml-tail nil))
+     ; If xml-tail is provided
+     (do (into (into (into xml-output xml-head) 
+                     (compilation-engine remaining xml-output)) 
+               xml-tail))
+     ; If xml-tail is not provided
+     (do (into 
+           (into xml-output xml-head)
+           (compilation-engine remaining xml-output)))))
+
+(defn compile-custom
+  "Compiles identifiers, integer constants, and strings"
+  [remaining xml-output custom]
+  (if (re-matches integer-constant-regex custom)
+    (compile-x remaining xml-output 
+               ["<term>" "<integerConstant>" custom "</integerConstant>" "</term>"] [])
+    (if (re-matches string-constant-regex custom)
+      (compile-x remaining xml-output 
+                 ["<term>" "<stringConstant>" custom "</stringConstant>" "</term>"] [])
+      (if (re-matches identifier-regex custom)
+        (compile-x remaining xml-output 
+                   ["<term>" "<identifier>" custom "</identifier>" "</term>"] [])))))
 
 (defn compilation-engine
   "Converts a list of jack tokens to VM code by looping through it recursively
   and employing a recursive descent tree strategy"
   [[current & remaining] xml-output]
-  (println current)
-  (if (not (= remaining nil))
-    (compilation-engine remaining xml-output)))
+  ; (println current)
+  ; (println remaining)
+  (if (not (= current nil))
+    ; If its an identifier, integer constant, or string
+    (if (= (compilation-functions current) nil)
+      (compile-custom remaining xml-output current)
+    (compile-x remaining xml-output 
+               (get-in compilation-functions [current :head]) 
+               (get-in compilation-functions [current :tail])))
+    xml-output))
+
+(def compilation-functions {"class" {:head ["<class>" "<keywords> class </keywords>"]
+                                     :tail ["</class>"]}
+                            "{" {:head ["<symbol> { </symbol>"]}})
 
 (defn -main
   "I don't do a whole lot ... yet."
   [jack-file & args]
-  (compilation-engine (tokenizer (slurp jack-file)) []))
+  (println (compilation-engine (tokenizer (slurp jack-file)) [])))
