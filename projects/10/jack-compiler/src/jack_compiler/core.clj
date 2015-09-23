@@ -75,11 +75,90 @@
                (get-in compilation-functions [current :tail])))
     xml-output))
 
-(def compilation-functions {"class" {:head ["<class>" "<keywords> class </keywords>"]
+(declare compile-class-var-dec)
+
+(declare compile-subroutine-dec)
+
+(defn compile-class
+  [[current & remaining] xml-output]
+  (println "current " current)
+  (println "remaining " remaining)
+  (println "xml-output " xml-output)
+  (let [var-dec-regex #"static|field"
+        subroutine-dec-regex #"constructor|function|method"]
+    (if (= current "class")
+      (into (into xml-output ["<class>" "<keyword>" "class" "</keyword>"])
+            (compile-class remaining xml-output))
+    (if (= current "{")
+      (into xml-output (compile-class remaining xml-output))
+    (if (re-matches identifier-regex current)
+      (into (into xml-output ["<identifier>" current "</identifier>"])
+            (compile-class remaining xml-output))
+    (if (re-matches var-dec-regex current)
+      (into xml-output (compile-class-var-dec remaining xml-output))
+    (if (re-matches subroutine-dec-regex current)
+      (into xml-output (compile-subroutine-dec remaining xml-output))
+    (if (= current "}")
+      (into xml-output ["</class>"])))))))))
+  
+; (defn compile-statement
+;   [current remaining xml-output]
+;   (if (= current "if")
+;     (compile-if-statement remaining xml-output))
+;   (if (= current "while")
+;     (compile-while-statement remaining xml-output))
+;   (if (= current "do")
+;     (compile-do-statement remaining xml-output))
+;   (if (= current "let")
+;     (compile-while-statement remaining xml-output))
+;   (if (= current "return")
+;     (compile-return-statement remaining xml-output)))
+
+; (defn compile-while-statement
+;   [remaining xml-output])
+
+; (defn compile-let-statement
+;   [remaining xml-output])
+
+; (defn compile-do-statement
+;   [remaining xml-output])
+
+; (defn compile-return-statement
+;   [remaining xml-output])
+
+; (defn compile-if-statement
+;   [remaining xml-output])
+
+; (defn compile-sequence-statement)
+
+; (defn compile-expression)
+
+(def compilation-functions {"class" {:head ["<class>" "<keyword>" "class" "</keyword>"]
                                      :tail ["</class>"]}
-                            "{" {:head ["<symbol> { </symbol>"]}})
+                            "function" {:head ["<subroutineDec>" "<keyword>" "function" "</keyword>"]
+                                     :tail ["</subroutineDec>"]}
+                            "void" {:head ["<keyword>" "void" "</keyword>"]}
+                            "{" {:head ["<symbol>" "{" "</symbol>"]}
+                            "}" {:head ["<symbol>" "}" "</symbol>"]}
+                            "(" {:head ["<symbol>" "(" "</symbol>"]}
+                            ")" {:head ["<symbol>" ")" "</symbol>"]}
+                            "[" {:head ["<symbol>" "[" "</symbol>"]}
+                            "]" {:head ["<symbol>" "]" "</symbol>"]}
+                            "." {:head ["<symbol>" "." "</symbol>"]}
+                            "," {:head ["<symbol>" "," "</symbol>"]}
+                            ";" {:head ["<symbol>" ";" "</symbol>"]}
+                            "+" {:head ["<symbol>" "+" "</symbol>"]}
+                            "-" {:head ["<symbol>" "-" "</symbol>"]}
+                            "*" {:head ["<symbol>" "*" "</symbol>"]}
+                            "/" {:head ["<symbol>" "/" "</symbol>"]}
+                            "&" {:head ["<symbol>" "&" "</symbol>"]}
+                            "|" {:head ["<symbol>" "|" "</symbol>"]}
+                            ">" {:head ["<symbol>" ">" "</symbol>"]}
+                            "<" {:head ["<symbol>" ">" "</symbol>"]}
+                            "=" {:head ["<symbol>" "=" "</symbol>"]}
+                            "~" {:head ["<symbol>" "~" "</symbol>"]}})
 
 (defn -main
   "I don't do a whole lot ... yet."
   [jack-file & args]
-  (println (compilation-engine (tokenizer (slurp jack-file)) [])))
+  (println (compile-class (tokenizer (slurp jack-file)) [])))

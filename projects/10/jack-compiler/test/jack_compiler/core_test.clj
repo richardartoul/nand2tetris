@@ -66,5 +66,5 @@
 
 (deftest compile-class-test
   (testing "compile-class properly compiles class"
-    (println (compilation-engine ["class" "{" "100" "\"YOLO\"" "main" "class"] []))))
+    (println (compile-class ["class" "main" "{" "}"] []))))
 
