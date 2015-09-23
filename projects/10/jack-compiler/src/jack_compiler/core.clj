@@ -79,27 +79,49 @@
 
 (declare compile-subroutine-dec)
 
-(defn compile-class
+(defn compile-class-var-dec
   [[current & remaining] xml-output]
-  (println "current " current)
-  (println "remaining " remaining)
-  (println "xml-output " xml-output)
+  (if (= current "static")
+    (into (into xml-output ["<classVarDec>" "<keyword>" current "</keyword>"])
+          (into xml-output (compile-class-var-dec remaining xml-output)))
+  (if (= current "field")
+    (into (into xml-output ["<classVarDec>" "<keyword>" current "</keyword>"])
+          (into xml-output (compile-class-var-dec remaining xml-output)))
+  (if (= current "int")
+    (into (into xml-output ["<keyword>" current "</keyword>"])
+        (into xml-output (compile-class-var-dec remaining xml-output)))
+  (if (= current "char")
+    (into (into xml-output ["<keyword>" current "</keyword>"])
+        (into xml-output (compile-class-var-dec remaining xml-output)))
+  (if (= current "boolean")
+    (into (into xml-output ["<keyword>" current "</keyword>"])
+        (into xml-output (compile-class-var-dec remaining xml-output)))
+  (if (re-matches identifier-regex current)
+    (into (into xml-output ["<identifier>" current "</identifier>"])
+        (into xml-output (compile-class-var-dec remaining xml-output)))
+  (if (= current ";")
+    (into (into xml-output ["<symbol>" current "</symbol>" "</classVarDec>"])
+        (into xml-output (compile-class remaining xml-output)))))))))))
+
+(defn compile-class
+  [[current & remaining :as full] xml-output]
   (let [var-dec-regex #"static|field"
         subroutine-dec-regex #"constructor|function|method"]
     (if (= current "class")
       (into (into xml-output ["<class>" "<keyword>" "class" "</keyword>"])
             (compile-class remaining xml-output))
     (if (= current "{")
-      (into xml-output (compile-class remaining xml-output))
-    (if (re-matches identifier-regex current)
-      (into (into xml-output ["<identifier>" current "</identifier>"])
+      (into (into xml-output ["<symbol>" "{" "</symbol>"])
             (compile-class remaining xml-output))
     (if (re-matches var-dec-regex current)
-      (into xml-output (compile-class-var-dec remaining xml-output))
+      (into xml-output (compile-class-var-dec full xml-output))
     (if (re-matches subroutine-dec-regex current)
-      (into xml-output (compile-subroutine-dec remaining xml-output))
+      (into xml-output (compile-subroutine-dec full xml-output))
     (if (= current "}")
-      (into xml-output ["</class>"])))))))))
+      (into xml-output ["<symbol>" "}" "</symbol>" "</class>"])
+    (if (re-matches identifier-regex current)
+      (into (into xml-output ["<identifier>" current "</identifier>"])
+            (compile-class remaining xml-output))))))))))
   
 ; (defn compile-statement
 ;   [current remaining xml-output]

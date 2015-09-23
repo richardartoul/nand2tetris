@@ -66,5 +66,5 @@
 
 (deftest compile-class-test
   (testing "compile-class properly compiles class"
-    (println (compile-class ["class" "main" "{" "}"] []))))
+    (println (compile-class ["class" "main" "{" "field" "Square" "square" ";" "field" "int" "direction" ";" "}"] []))))
 
