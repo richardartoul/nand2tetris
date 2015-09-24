@@ -103,6 +103,65 @@
     (into (into xml-output ["<symbol>" current "</symbol>" "</classVarDec>"])
         (into xml-output (compile-class remaining xml-output)))))))))))
 
+(defn compile-parameter-list
+  [[current & remaining :as full] xml-output]
+  (if (= current "char")
+    (into (into xml-output ["<keyword>" current "</keyword>"])
+          (compile-parameter-list remaining xml-output))
+  (if (= current "boolean")
+    (into (into xml-output ["<keyword>" current "</keyword>"])
+          (compile-parameter-list remaining xml-output))
+  (if (= current "int")
+    (into (into xml-output ["<keyword>" current "</keyword>"])
+          (compile-parameter-list remaining xml-output))
+  (if (= current ",")
+    (into (into xml-output ["<symbol>" current "</symbol>"])
+          (compile-parameter-list remaining xml-output))
+  (if (= current ")")
+    (into xml-output (compile-subroutine-dec full xml-output))
+  (if (re-matches identifier-regex current)
+    (into (into xml-output ["<identifier>" current "</identifier>"])
+          (compile-parameter-list remaining xml-output)))))))))
+
+(defn compile-statements
+  [[current & remaining :as full] xml-output])
+
+(defn compile-subroutine-dec
+  [[current & remaining] xml-output]
+  (if (= current "constructor")
+    (into (into xml-output ["<subroutineDec" "<keyword>" "constructor" "</keyword>"])
+          (compile-subroutine-dec remaining xml-output))
+  (if (= current "function")
+    (into (into xml-output ["<subroutineDec>" "<keyword>" "function" "</keyword>"])
+          (compile-subroutine-dec remaining xml-output))
+  (if (= current "method")
+    (into (into xml-output ["<subroutineDec" "<keyword>" "method" "</keyword>"])
+          (compile-subroutine-dec remaining xml-output))
+  (if (= current "int")
+    (into (into xml-output ["<keyword>" current "</keyword>"])
+        (into xml-output (compile-subroutine-dec remaining xml-output)))
+  (if (= current "char")
+    (into (into xml-output ["<keyword>" current "</keyword>"])
+        (into xml-output (compile-subroutine-dec remaining xml-output)))
+  (if (= current "boolean")
+    (into (into xml-output ["<keyword>" current "</keyword>"])
+        (into xml-output (compile-subroutine-dec remaining xml-output)))
+  (if (= current "void")
+    (into (into xml-output ["<keyword>" current "</keyword>"])
+        (into xml-output (compile-subroutine-dec remaining xml-output)))
+  (if (= current "(")
+    (into (into xml-output ["<symbol>" current "</symbol>" "<parameterList>"])
+        (into xml-output (compile-parameter-list remaining xml-output)))
+  (if (= current ")")
+    (into (into xml-output ["</parameterList>" "<symbol>" current "</symbol>"])
+        (into xml-output (compile-class remaining xml-output)))
+  (if (= current "{")
+    (into (into xml-output ["<symbol>" current "</symbol>"])
+        (into xml-output (compile-statements remaining xml-output)))
+  (if (re-matches identifier-regex current)
+    (into (into xml-output ["<identifier>" current "</identifier>"])
+        (into xml-output (compile-subroutine-dec remaining xml-output)))))))))))))))
+
 (defn compile-class
   [[current & remaining :as full] xml-output]
   (let [var-dec-regex #"static|field"
