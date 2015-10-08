@@ -12,15 +12,17 @@ The completed chips can be found in folders 01 through 05.
 
 ### Hack Assembler
 
-Wrote an assembler for the Hack assembly language in python that can be found [here](06/assembler). I also wrote some simple test programs directly in the Hack assembly language. Those programs can be found [here](https://github.com/richardartoul/nand2tetris/tree/master/projects/04).
+Wrote an assembler for the Hack assembly language in python that can be found [here](https://github.com/richardartoul/nand2tetris/tree/master/projects/06/assembler). I also wrote some simple test programs directly in the Hack assembly language. Those programs can be found [here](https://github.com/richardartoul/nand2tetris/tree/master/projects/04).
 
 ### Virtual Machine Translator
 
 Wrote a virtual machine translator (compiler back-end) that translates stack-based virtual machine code (similar to the Java virtual machine) into the Hack assembly language. This program was written in python and can be found [here](https://github.com/richardartoul/nand2tetris/tree/master/projects/07/virtual_machine_part_1).
 
-### Compiler Front-End
+### Compiler Front-End - In Progress
 
-I plan to write the compiler front-end (the part that translates the object-oriented Jack language into virtual machine code) in the Clojure language. This program will consist of a lexical parser / tokenizer, as well as a virtual machine code writing module.
+I Wrote the compiler front-end (the part that translates the object-oriented Jack language into virtual machine code) in the Clojure language. This program consists of a tokenizer, lexical parser, as well as a virtual machine code writing module.
+
+The tokenizer and lexical parser were written from scratch in Clojure using a recursive descent algorithm. Tools like Lex and Yacc that simplify this process were not used.
 
 ### Operating System
 
