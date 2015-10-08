@@ -166,24 +166,26 @@
   ; compile-expression-list always calls back to compile subroutine but it has a callback
   ; parameter so it knows which callback to send back to compile subroutine
   [[current & remaining :as full] xml-output callback]
+  (println "In compile expression list, callback is: " callback)
   (if (or (re-matches integer-constant-regex current) 
           (re-matches string-constant-regex current) 
           (re-matches keyword-constant-regex current)
           (re-matches identifier-regex current))
-    (into xml-output (compile-expression full xml-output callback))
+    (into xml-output (compile-expression full xml-output compile-expression-list callback))
   (if (= current "(")
-    (into xml-output (compile-expression remaining xml-output compile-expression-list))
+    (into xml-output (compile-expression remaining xml-output compile-expression-list callback))
   (if (= current ")")
     (into xml-output (compile-subroutine-call full xml-output callback))))))
 
 (defn compile-expression
-  [[current & remaining :as full] xml-output callback]
+  [[current & remaining :as full] xml-output callback & callbackTunnel]
+  (println "in compile expression, callbacktunnel is: ", callbackTunnel)
   (if (or (re-matches integer-constant-regex current) 
           (re-matches string-constant-regex current) 
           (re-matches keyword-constant-regex current)
           (re-matches identifier-regex current))
     (into (into xml-output ["<expression>"])
-      (compile-term full xml-output callback))
+      (compile-term full xml-output callback (first callbackTunnel)))
   (if (= current "+")
     (into xml-output ["<symbol>" current "</symbol>"])
   (if (= current "-")
@@ -204,22 +206,22 @@
     (into xml-output ["<symbol>" current "</symbol>"])
     ; else 
     (into (into xml-output ["</expression>"])
-      (callback full xml-output)))))))))))))
+      (callback full xml-output (first callbackTunnel))))))))))))))
 
 (defn compile-term
-  [[current & remaining :as full] xml-output callback]
+  [[current & remaining :as full] xml-output callback & callbackTunnel]
   (if (re-matches integer-constant-regex current)
     (into (into xml-output ["<expression>" "<term>" "<integerConstant>" current "</integerConstant>" "</term>"])
-      (compile-expression remaining xml-output callback))
+      (compile-expression remaining xml-output callback (first callbackTunnel)))
   (if (re-matches string-constant-regex current)
     (into (into xml-output ["<term>" "<stringConstant>" current "</stringConstant>" "</term>"])
-      (compile-expression remaining xml-output callback))
+      (compile-expression remaining xml-output callback (first callbackTunnel)))
   (if (re-matches keyword-constant-regex current)
     (into (into xml-output ["<term>" "<keywordConstant>" current "</keywordConstant>" "</term>"])
-      (compile-expression remaining xml-output callback))
+      (compile-expression remaining xml-output callback (first callbackTunnel)))
   (if (re-matches identifier-regex current)
     (into (into xml-output ["<term>" "<identifier>" current "</identifier>"])
-      (compile-expression remaining xml-output callback)))))))
+      (compile-expression remaining xml-output callback (first callbackTunnel))))))))
   ;   (let [first-ahead (head remaining) second-ahead (second remaining)]
   ;     (if (= look-ahead ".")
   ;       (into xml-output ["term" "<identifier>" current "</identifier" "<symbol>" "." "</symbol>"
@@ -227,7 +229,7 @@
 
 ; Needs to handle expressions
 (defn compile-let-statement
-  [[current & remaining :as full] xml-output]
+  [[current & remaining :as full] xml-output & extra]
   (if (= current "let")
     (into (into xml-output ["<letStatement>" "<keyword>" "let" "</keyword>"])
       (compile-let-statement remaining xml-output))
@@ -242,7 +244,7 @@
       (compile-statements remaining xml-output)))))))
 
 (defn compile-do-statement
-  [[current & remaining :as full] xml-output]
+  [[current & remaining :as full] xml-output & extra]
   (if (= current "do")
     (into (into xml-output ["<doStatement>" "<keyword>" "do" "</keyword>"])
       (compile-do-statement remaining xml-output))
@@ -254,6 +256,8 @@
 
 (defn compile-subroutine-call
   [[current & remaining :as full] xml-output callback]
+  (println "callback: " callback)
+  (println "first full: " (first full))
   (if (re-matches identifier-regex current)
     (into (into xml-output ["<identifier>" current "</identifier>"])
       (compile-subroutine-call remaining xml-output callback))
@@ -267,10 +271,13 @@
     (into (into xml-output ["<symbol>" current "</symbol>"])
       (compile-subroutine-call remaining xml-output callback))
   (if (= current ";")
-    (into xml-output (callback full xml-output))))))))
+    (do
+    ; (println callback)
+    ; (println (first full))
+    (into xml-output (callback full xml-output)))))))))
 
 (defn compile-return-statement
-  [[current & remaining :as full] xml-output]
+  [[current & remaining :as full] xml-output & extra]
   (if (= current "return")
     (into (into xml-output ["<returnStatement>" "<keyword>" "return" "</keyword>"])
       (compile-return-statement remaining xml-output))
