@@ -174,10 +174,16 @@
     (into xml-output (compile-expression full xml-output compile-expression-list callback))
   (if (= current "(")
     (into xml-output (compile-expression remaining xml-output compile-expression-list callback))
+  (if (= current ",")
+    (into xml-output (compile-expression remaining xml-output compile-expression-list callback))
   (if (= current ")")
-    (into xml-output (compile-subroutine-call full xml-output callback))))))
+    (into xml-output (compile-subroutine-call full xml-output callback)))))))
 
 (defn compile-expression
+  ; callback is the actual function it should call back to
+  ; callbackTunnel is the callback for another function that needs to be maintained
+  ; for subsequent calls
+  ; callbackTunnel only has one item in it, but need to use first because & converts to list
   [[current & remaining :as full] xml-output callback & callbackTunnel]
   (println "in compile expression, callbacktunnel is: ", callbackTunnel)
   (if (or (re-matches integer-constant-regex current) 
@@ -287,7 +293,7 @@
           (re-matches identifier-regex current))
     (into xml-output (compile-expression full xml-output compile-return-statement))
   (if (= current ";")
-    (into (into xml-output ["</returnStatement>"])
+    (into (into xml-output ["<symbol>" ";" "</symbol>" "</returnStatement>"])
       (compile-statements remaining xml-output))))))
 
 (defn compile-statements
@@ -297,7 +303,7 @@
   (if (= current "do")
     (into xml-output (compile-do-statement full xml-output))
   (if (= current "if")
-    (into xml-output (compile-if-statement full xml-output))
+    xml-output
   (if (= current "while")
     (into xml-output (compile-while-statement full xml-output))
   (if (= current "return")
