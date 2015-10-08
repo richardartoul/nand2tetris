@@ -272,13 +272,16 @@
 (defn compile-return-statement
   [[current & remaining :as full] xml-output]
   (if (= current "return")
-    (into xml-output ["<returnStatement>" "<keyword>" "return" "</keyword>"])
+    (into (into xml-output ["<returnStatement>" "<keyword>" "return" "</keyword>"])
+      (compile-return-statement remaining xml-output))
   (if (or (re-matches integer-constant-regex current) 
           (re-matches string-constant-regex current) 
           (re-matches keyword-constant-regex current)
           (re-matches identifier-regex current))
-    ()
-  ))
+    (into xml-output (compile-expression full xml-output compile-return-statement))
+  (if (= current ";")
+    (into (into xml-output ["</returnStatement>"])
+      (compile-statements remaining xml-output))))))
 
 (defn compile-statements
   [[current & remaining :as full] xml-output]
@@ -424,5 +427,3 @@
   "I don't do a whole lot ... yet."
   [jack-file & args]
   (println (compile-class (tokenizer (slurp jack-file)) [])))
-
-
