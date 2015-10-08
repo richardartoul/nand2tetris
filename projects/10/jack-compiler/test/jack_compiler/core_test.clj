@@ -67,5 +67,7 @@
 (deftest compile-class-test
   (testing "compile-class properly compiles class"
     (println (compile-class ["class" "main" "{" "field" "Square" "square" ";" "field" "int" "direction" ";"
-                             "function" "void" "main" "(" "int" "rawr" "," "char" "rawr2" ")" "}"] []))))
+                             "function" "void" "main" "(" "int" "rawr" "," "char" "rawr2" ")" "{" "var"
+                             "char" "yolo" ";" "var" "boolean" "isDope" ";" "let" "yolo" 
+                             "=" "5" ";" "}" "}"] []))))
 

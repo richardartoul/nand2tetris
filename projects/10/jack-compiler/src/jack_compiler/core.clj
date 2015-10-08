@@ -5,8 +5,11 @@
 (declare compilation-engine)
 (declare compile-class)
 (declare compilation-functions)
+(declare compile-term)
 
 (def keyword-regex #"class|constructor|function|method|field|static|var|int|char|boolean|void|true|false|null|this|let|do|if|else|while|return")
+
+(def keyword-constant-regex #"true|false|null|this")
 
 (def symbol-regex #"\{|\}|\(|\)|\[|\]|\.|,|;|\+|-|\*|/|&|\||<|>|=|~")
 
@@ -29,8 +32,9 @@
   [jack-text]
   ; Remove line comments
   (def stripped-jack-text (replace jack-text #"//.*" (re-quote-replacement "")))
-  ; Remove block comments
-  (def stripped-jack-text (replace stripped-jack-text #"/\*\*.*\*/" ""))
+  ; Remove block comments - (?s) enables dotall mode so . matches \n aswell
+  (def stripped-jack-text (replace stripped-jack-text #"(?s)\/\*\*.*\*\/" ""))
+  (println stripped-jack-text)
   ; Convert string to lazy sequence of tokens using regex
   (re-seq tokenizer-regex stripped-jack-text))
   
@@ -78,6 +82,14 @@
 (declare compile-class-var-dec)
 
 (declare compile-subroutine-dec)
+(declare compile-subroutine-body)
+(declare compile-statements)
+(declare compile-expression)
+(declare compile-subroutine-call)
+(declare compile-if-statement)
+(declare compile-while-statement)
+(declare compile-do-statement)
+(declare compile-return-statement)
 
 (defn compile-class-var-dec
   [[current & remaining] xml-output]
@@ -99,9 +111,36 @@
   (if (re-matches identifier-regex current)
     (into (into xml-output ["<identifier>" current "</identifier>"])
         (into xml-output (compile-class-var-dec remaining xml-output)))
+  (if (= current ",")
+    (into (into xml-output ["<symbol>" current "</symbol>"])
+        (into xml-output (compile-class-var-dec remaining xml-output)))
   (if (= current ";")
     (into (into xml-output ["<symbol>" current "</symbol>" "</classVarDec>"])
-        (into xml-output (compile-class remaining xml-output)))))))))))
+        (into xml-output (compile-class remaining xml-output))))))))))))
+
+(defn compile-var-dec
+  [[current & remaining] xml-output]
+  (if (= current "var")
+    (into (into xml-output ["<VarDec>" "<keyword>" current "</keyword>"])
+          (into xml-output (compile-var-dec remaining xml-output)))
+  (if (= current "int")
+    (into (into xml-output ["<keyword>" current "</keyword>"])
+        (into xml-output (compile-var-dec remaining xml-output)))
+  (if (= current "char")
+    (into (into xml-output ["<keyword>" current "</keyword>"])
+        (into xml-output (compile-var-dec remaining xml-output)))
+  (if (= current "boolean")
+    (into (into xml-output ["<keyword>" current "</keyword>"])
+        (into xml-output (compile-var-dec remaining xml-output)))
+  (if (re-matches identifier-regex current)
+    (into (into xml-output ["<identifier>" current "</identifier>"])
+        (into xml-output (compile-var-dec remaining xml-output)))
+  (if (= current ",")
+    (into (into xml-output ["<symbol>" current "</symbol>"])
+        (into xml-output (compile-var-dec remaining xml-output)))
+  (if (= current ";")
+    (into (into xml-output ["<symbol>" current "</symbol>" "</VarDec>"])
+        (into xml-output (compile-subroutine-body remaining xml-output)))))))))))
 
 (defn compile-parameter-list
   [[current & remaining :as full] xml-output]
@@ -123,8 +162,150 @@
     (into (into xml-output ["<identifier>" current "</identifier>"])
           (compile-parameter-list remaining xml-output)))))))))
 
+(defn compile-expression-list
+  ; compile-expression-list always calls back to compile subroutine but it has a callback
+  ; parameter so it knows which callback to send back to compile subroutine
+  [[current & remaining :as full] xml-output callback]
+  (if (or (re-matches integer-constant-regex current) 
+          (re-matches string-constant-regex current) 
+          (re-matches keyword-constant-regex current)
+          (re-matches identifier-regex current))
+    (into xml-output (compile-expression full xml-output callback))
+  (if (= current "(")
+    (into xml-output (compile-expression remaining xml-output compile-expression-list))
+  (if (= current ")")
+    (into xml-output (compile-subroutine-call full xml-output callback))))))
+
+(defn compile-expression
+  [[current & remaining :as full] xml-output callback]
+  (if (or (re-matches integer-constant-regex current) 
+          (re-matches string-constant-regex current) 
+          (re-matches keyword-constant-regex current)
+          (re-matches identifier-regex current))
+    (into (into xml-output ["<expression>"])
+      (compile-term full xml-output callback))
+  (if (= current "+")
+    (into xml-output ["<symbol>" current "</symbol>"])
+  (if (= current "-")
+    (into xml-output ["<symbol>" current "</symbol>"])
+  (if (= current "*")
+    (into xml-output ["<symbol>" current "</symbol>"])
+  (if (= current "/")
+    (into xml-output ["<symbol>" current "</symbol>"])
+  (if (= current "&")
+    (into xml-output ["<symbol>" current "</symbol>"])
+  (if (= current "|")
+    (into xml-output ["<symbol>" current "</symbol>"])
+  (if (= current "<")
+    (into xml-output ["<symbol>" current "</symbol>"])
+  (if (= current ">")
+    (into xml-output ["<symbol>" current "</symbol>"])
+  (if (= current "=")
+    (into xml-output ["<symbol>" current "</symbol>"])
+    ; else 
+    (into (into xml-output ["</expression>"])
+      (callback full xml-output)))))))))))))
+
+(defn compile-term
+  [[current & remaining :as full] xml-output callback]
+  (if (re-matches integer-constant-regex current)
+    (into (into xml-output ["<expression>" "<term>" "<integerConstant>" current "</integerConstant>" "</term>"])
+      (compile-expression remaining xml-output callback))
+  (if (re-matches string-constant-regex current)
+    (into (into xml-output ["<term>" "<stringConstant>" current "</stringConstant>" "</term>"])
+      (compile-expression remaining xml-output callback))
+  (if (re-matches keyword-constant-regex current)
+    (into (into xml-output ["<term>" "<keywordConstant>" current "</keywordConstant>" "</term>"])
+      (compile-expression remaining xml-output callback))
+  (if (re-matches identifier-regex current)
+    (into (into xml-output ["<term>" "<identifier>" current "</identifier>"])
+      (compile-expression remaining xml-output callback)))))))
+  ;   (let [first-ahead (head remaining) second-ahead (second remaining)]
+  ;     (if (= look-ahead ".")
+  ;       (into xml-output ["term" "<identifier>" current "</identifier" "<symbol>" "." "</symbol>"
+  ;         "<identifier>" second-ahead "</identifier>" "("]))))))))
+
+; Needs to handle expressions
+(defn compile-let-statement
+  [[current & remaining :as full] xml-output]
+  (if (= current "let")
+    (into (into xml-output ["<letStatement>" "<keyword>" "let" "</keyword>"])
+      (compile-let-statement remaining xml-output))
+  (if (re-matches identifier-regex current)
+    (into (into xml-output ["<identifier>" current "</identifier>"])
+      (compile-let-statement remaining xml-output))
+  (if (= current "=")
+    (into (into xml-output ["<symbol>" "=" "</symbol>"])
+      (compile-expression remaining xml-output compile-let-statement))
+  (if (= current ";")
+    (into (into xml-output ["<symbol>" current "</symbol>" "</letStatement>"])
+      (compile-statements remaining xml-output)))))))
+
+(defn compile-do-statement
+  [[current & remaining :as full] xml-output]
+  (if (= current "do")
+    (into (into xml-output ["<doStatement>" "<keyword>" "do" "</keyword>"])
+      (compile-do-statement remaining xml-output))
+  (if (= current ";")
+    (into (into xml-output ["<symbol>" ";" "</symbol>" "</doStatement>"])
+      (compile-statements remaining xml-output))
+  (if (re-matches identifier-regex current) 
+    (into xml-output (compile-subroutine-call full xml-output compile-do-statement))))))
+
+(defn compile-subroutine-call
+  [[current & remaining :as full] xml-output callback]
+  (if (re-matches identifier-regex current)
+    (into (into xml-output ["<identifier>" current "</identifier>"])
+      (compile-subroutine-call remaining xml-output callback))
+  (if (= current "(")
+    (into (into xml-output ["<symbol>" current "</symbol>"])
+      (compile-expression-list remaining xml-output callback))  
+  (if (= current ")")
+    (into (into xml-output ["<symbol>" current "</symbol>"])
+      (compile-subroutine-call remaining xml-output callback))
+  (if (= current ".")
+    (into (into xml-output ["<symbol>" current "</symbol>"])
+      (compile-subroutine-call remaining xml-output callback))
+  (if (= current ";")
+    (into xml-output (callback full xml-output))))))))
+
+(defn compile-return-statement
+  [[current & remaining :as full] xml-output]
+  (if (= current "return")
+    (into xml-output ["<returnStatement>" "<keyword>" "return" "</keyword>"])
+  (if (or (re-matches integer-constant-regex current) 
+          (re-matches string-constant-regex current) 
+          (re-matches keyword-constant-regex current)
+          (re-matches identifier-regex current))
+    ()
+  ))
+
 (defn compile-statements
-  [[current & remaining :as full] xml-output])
+  [[current & remaining :as full] xml-output]
+  (if (= current "let")
+    (into xml-output (compile-let-statement full xml-output))
+  (if (= current "do")
+    (into xml-output (compile-do-statement full xml-output))
+  (if (= current "if")
+    (into xml-output (compile-if-statement full xml-output))
+  (if (= current "while")
+    (into xml-output (compile-while-statement full xml-output))
+  (if (= current "return")
+    (into xml-output (compile-return-statement full xml-output))
+  (if (= current "}")
+    (into xml-output (compile-subroutine-body full xml-output)))))))))
+
+(defn compile-subroutine-body
+  [[current & remaining :as full] xml-output]
+  (if (= current "var")
+    (into xml-output (compile-var-dec full xml-output))
+  (if (or (= current "let") (= current "if") (= current "while") (= current "do") (= current "do"))
+    (into xml-output (compile-statements full xml-output))
+  (if (= current "}")
+    (into xml-output (compile-subroutine-dec remaining xml-output))))))
+  ; (if (= current "function")
+  ;   (into (into xml-output ["<subroutineDec>" "<keyword>" "function" "</keyword>"])
+  ;         (compile-subroutine-dec remaining xml-output)))))
 
 (defn compile-subroutine-dec
   [[current & remaining] xml-output]
@@ -154,10 +335,10 @@
         (into xml-output (compile-parameter-list remaining xml-output)))
   (if (= current ")")
     (into (into xml-output ["</parameterList>" "<symbol>" current "</symbol>"])
-        (into xml-output (compile-class remaining xml-output)))
+        (into xml-output (compile-subroutine-dec remaining xml-output)))
   (if (= current "{")
     (into (into xml-output ["<symbol>" current "</symbol>"])
-        (into xml-output (compile-statements remaining xml-output)))
+        (compile-subroutine-body remaining xml-output))
   (if (re-matches identifier-regex current)
     (into (into xml-output ["<identifier>" current "</identifier>"])
         (into xml-output (compile-subroutine-dec remaining xml-output)))))))))))))))
@@ -243,3 +424,5 @@
   "I don't do a whole lot ... yet."
   [jack-file & args]
   (println (compile-class (tokenizer (slurp jack-file)) [])))
+
+
