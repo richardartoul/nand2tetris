@@ -81,6 +81,8 @@
 
 (declare compile-class-var-dec)
 
+(def compile-statements-callback nil)
+
 (declare compile-subroutine-dec)
 (declare compile-subroutine-body)
 (declare compile-statements)
@@ -296,6 +298,27 @@
     (into (into xml-output ["<symbol>" ";" "</symbol>" "</returnStatement>"])
       (compile-statements remaining xml-output))))))
 
+(defn compile-if-statement
+  [[current & remaining :as full] xml-output & extra]
+  (def compile-statements-callback compile-if-statement)
+  (if (= current "if")
+    (into (into xml-output ["<ifStatement>" "<keyword>" "if" "</keyword>"])
+      (compile-if-statement remaining xml-output))
+  (if (= current "(")
+    (into (into xml-output ["<symbol>" current "</symbol>"])
+      (compile-expression remaining xml-output compile-if-statement))
+  (if (= current ")")
+    (into (into xml-output ["<symbol>" current "</symbol>"])
+      (compile-if-statement remaining xml-output))
+  (if (= current "{")
+    (into (into xml-output ["<symbol>" current "</symbol>"])
+      (compile-statements remaining xml-output))
+  (if (= current "}")
+    (do
+      (def compile-statements-callback compile-subroutine-body)
+      (into (into xml-output ["<symbol>" current "</symbol>" "</ifStatement>"])
+        (compile-statements remaining xml-output)))))))))
+
 (defn compile-statements
   [[current & remaining :as full] xml-output]
   (if (= current "let")
@@ -303,16 +326,17 @@
   (if (= current "do")
     (into xml-output (compile-do-statement full xml-output))
   (if (= current "if")
-    xml-output
+    (into xml-output (compile-if-statement full xml-output))
   (if (= current "while")
     (into xml-output (compile-while-statement full xml-output))
   (if (= current "return")
     (into xml-output (compile-return-statement full xml-output))
   (if (= current "}")
-    (into xml-output (compile-subroutine-body full xml-output)))))))))
+    (into xml-output (compile-statements-callback full xml-output)))))))))
 
 (defn compile-subroutine-body
   [[current & remaining :as full] xml-output]
+  (def compile-statements-callback compile-subroutine-body)
   (if (= current "var")
     (into xml-output (compile-var-dec full xml-output))
   (if (or (= current "let") (= current "if") (= current "while") (= current "do") (= current "do"))
@@ -324,15 +348,15 @@
   ;         (compile-subroutine-dec remaining xml-output)))))
 
 (defn compile-subroutine-dec
-  [[current & remaining] xml-output]
+  [[current & remaining :as full] xml-output]
   (if (= current "constructor")
-    (into (into xml-output ["<subroutineDec" "<keyword>" "constructor" "</keyword>"])
+    (into (into xml-output ["<subroutineDec>" "<keyword>" "constructor" "</keyword>"])
           (compile-subroutine-dec remaining xml-output))
   (if (= current "function")
     (into (into xml-output ["<subroutineDec>" "<keyword>" "function" "</keyword>"])
           (compile-subroutine-dec remaining xml-output))
   (if (= current "method")
-    (into (into xml-output ["<subroutineDec" "<keyword>" "method" "</keyword>"])
+    (into (into xml-output ["<subroutineDec>" "<keyword>" "method" "</keyword>"])
           (compile-subroutine-dec remaining xml-output))
   (if (= current "int")
     (into (into xml-output ["<keyword>" current "</keyword>"])
@@ -355,9 +379,12 @@
   (if (= current "{")
     (into (into xml-output ["<symbol>" current "</symbol>"])
         (compile-subroutine-body remaining xml-output))
+  (if (= current "}")
+    (into (into xml-output ["<symbol>" current "</symbol>" "/<subroutineDec>"])
+        (compile-class full xml-output))
   (if (re-matches identifier-regex current)
     (into (into xml-output ["<identifier>" current "</identifier>"])
-        (into xml-output (compile-subroutine-dec remaining xml-output)))))))))))))))
+        (into xml-output (compile-subroutine-dec remaining xml-output))))))))))))))))
 
 (defn compile-class
   [[current & remaining :as full] xml-output]
