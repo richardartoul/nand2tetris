@@ -56,13 +56,13 @@
   [remaining xml-output custom]
   (if (re-matches integer-constant-regex custom)
     (compile-x remaining xml-output 
-               ["<term>" "<integerConstant>" custom "</integerConstant>" "</term>"] [])
+               ["<term>\n" "<integerConstant>" custom "</integerConstant>\n" "</term>\n"] [])
     (if (re-matches string-constant-regex custom)
       (compile-x remaining xml-output 
-                 ["<term>" "<stringConstant>" custom "</stringConstant>" "</term>"] [])
+                 ["<term>\n" "<stringConstant>" custom "</stringConstant>\n" "</term>\n"] [])
       (if (re-matches identifier-regex custom)
         (compile-x remaining xml-output 
-                   ["<term>" "<identifier>" custom "</identifier>" "</term>"] [])))))
+                   ["<term>\n" "<identifier>" custom "</identifier>\n" "</term>\n"] [])))))
 
 (defn compilation-engine
   "Converts a list of jack tokens to VM code by looping through it recursively
@@ -96,72 +96,72 @@
 (defn compile-class-var-dec
   [[current & remaining] xml-output]
   (if (= current "static")
-    (into (into xml-output ["<classVarDec>" "<keyword>" current "</keyword>"])
+    (into (into xml-output ["<classVarDec>\n" "<keyword>" current "</keyword>\n"])
           (into xml-output (compile-class-var-dec remaining xml-output)))
   (if (= current "field")
-    (into (into xml-output ["<classVarDec>" "<keyword>" current "</keyword>"])
+    (into (into xml-output ["<classVarDec>\n" "<keyword>" current "</keyword>\n"])
           (into xml-output (compile-class-var-dec remaining xml-output)))
   (if (= current "int")
-    (into (into xml-output ["<keyword>" current "</keyword>"])
+    (into (into xml-output ["<keyword>" current "</keyword>\n"])
         (into xml-output (compile-class-var-dec remaining xml-output)))
   (if (= current "char")
-    (into (into xml-output ["<keyword>" current "</keyword>"])
+    (into (into xml-output ["<keyword>" current "</keyword>\n"])
         (into xml-output (compile-class-var-dec remaining xml-output)))
   (if (= current "boolean")
-    (into (into xml-output ["<keyword>" current "</keyword>"])
+    (into (into xml-output ["<keyword>" current "</keyword>\n"])
         (into xml-output (compile-class-var-dec remaining xml-output)))
   (if (re-matches identifier-regex current)
-    (into (into xml-output ["<identifier>" current "</identifier>"])
+    (into (into xml-output ["<identifier>" current "</identifier>\n"])
         (into xml-output (compile-class-var-dec remaining xml-output)))
   (if (= current ",")
-    (into (into xml-output ["<symbol>" current "</symbol>"])
+    (into (into xml-output ["<symbol>" current "</symbol>\n"])
         (into xml-output (compile-class-var-dec remaining xml-output)))
   (if (= current ";")
-    (into (into xml-output ["<symbol>" current "</symbol>" "</classVarDec>"])
+    (into (into xml-output ["<symbol>" current "</symbol>\n" "</classVarDec>\n"])
         (into xml-output (compile-class remaining xml-output))))))))))))
 
 (defn compile-var-dec
   [[current & remaining] xml-output]
   (if (= current "var")
-    (into (into xml-output ["<VarDec>" "<keyword>" current "</keyword>"])
+    (into (into xml-output ["<VarDec>" "<keyword>" current "</keyword>\n"])
           (into xml-output (compile-var-dec remaining xml-output)))
   (if (= current "int")
-    (into (into xml-output ["<keyword>" current "</keyword>"])
+    (into (into xml-output ["<keyword>" current "</keyword>\n"])
         (into xml-output (compile-var-dec remaining xml-output)))
   (if (= current "char")
-    (into (into xml-output ["<keyword>" current "</keyword>"])
+    (into (into xml-output ["<keyword>" current "</keyword>\n"])
         (into xml-output (compile-var-dec remaining xml-output)))
   (if (= current "boolean")
-    (into (into xml-output ["<keyword>" current "</keyword>"])
+    (into (into xml-output ["<keyword>" current "</keyword>\n"])
         (into xml-output (compile-var-dec remaining xml-output)))
   (if (re-matches identifier-regex current)
-    (into (into xml-output ["<identifier>" current "</identifier>"])
+    (into (into xml-output ["<identifier>" current "</identifier>\n"])
         (into xml-output (compile-var-dec remaining xml-output)))
   (if (= current ",")
-    (into (into xml-output ["<symbol>" current "</symbol>"])
+    (into (into xml-output ["<symbol>" current "</symbol>\n"])
         (into xml-output (compile-var-dec remaining xml-output)))
   (if (= current ";")
-    (into (into xml-output ["<symbol>" current "</symbol>" "</VarDec>"])
+    (into (into xml-output ["<symbol>" current "</symbol>\n" "</VarDec>\n"])
         (into xml-output (compile-subroutine-body remaining xml-output)))))))))))
 
 (defn compile-parameter-list
   [[current & remaining :as full] xml-output]
   (if (= current "char")
-    (into (into xml-output ["<keyword>" current "</keyword>"])
+    (into (into xml-output ["<keyword>" current "</keyword>\n"])
           (compile-parameter-list remaining xml-output))
   (if (= current "boolean")
-    (into (into xml-output ["<keyword>" current "</keyword>"])
+    (into (into xml-output ["<keyword>" current "</keyword>\n"])
           (compile-parameter-list remaining xml-output))
   (if (= current "int")
-    (into (into xml-output ["<keyword>" current "</keyword>"])
+    (into (into xml-output ["<keyword>" current "</keyword>\n"])
           (compile-parameter-list remaining xml-output))
   (if (= current ",")
-    (into (into xml-output ["<symbol>" current "</symbol>"])
+    (into (into xml-output ["<symbol>" current "</symbol>\n"])
           (compile-parameter-list remaining xml-output))
   (if (= current ")")
     (into xml-output (compile-subroutine-dec full xml-output))
   (if (re-matches identifier-regex current)
-    (into (into xml-output ["<identifier>" current "</identifier>"])
+    (into (into xml-output ["<identifier>" current "</identifier>\n"])
           (compile-parameter-list remaining xml-output)))))))))
 
 (defn compile-expression-list
@@ -175,11 +175,14 @@
           (re-matches identifier-regex current))
     (into xml-output (compile-expression full xml-output compile-expression-list callback))
   (if (= current "(")
-    (into xml-output (compile-expression remaining xml-output compile-expression-list callback))
+    (into (into xml-output ["<expressionList>\n"])
+    (compile-expression remaining xml-output compile-expression-list callback))
   (if (= current ",")
-    (into xml-output (compile-expression remaining xml-output compile-expression-list callback))
+    (into (into xml-output ["<symbol>" current "</symbol>\n"])
+    (compile-expression remaining xml-output compile-expression-list callback))
   (if (= current ")")
-    (into xml-output (compile-subroutine-call full xml-output callback)))))))
+    (into (into xml-output ["</expressionList>\n"])
+    (compile-subroutine-call full xml-output callback)))))))
 
 (defn compile-expression
   ; callback is the actual function it should call back to
@@ -192,72 +195,72 @@
           (re-matches string-constant-regex current) 
           (re-matches keyword-constant-regex current)
           (re-matches identifier-regex current))
-    (into (into xml-output ["<expression>"])
+    (into (into xml-output ["<expression>\n"])
       (compile-term full xml-output callback (first callbackTunnel)))
   (if (= current "+")
-    (into xml-output ["<symbol>" current "</symbol>"])
+    (into xml-output ["<symbol>" current "</symbol>\n"])
   (if (= current "-")
-    (into xml-output ["<symbol>" current "</symbol>"])
+    (into xml-output ["<symbol>" current "</symbol>\n"])
   (if (= current "*")
-    (into xml-output ["<symbol>" current "</symbol>"])
+    (into xml-output ["<symbol>" current "</symbol>\n"])
   (if (= current "/")
-    (into xml-output ["<symbol>" current "</symbol>"])
+    (into xml-output ["<symbol>" current "</symbol>\n"])
   (if (= current "&")
-    (into xml-output ["<symbol>" current "</symbol>"])
+    (into xml-output ["<symbol>" current "</symbol>\n"])
   (if (= current "|")
-    (into xml-output ["<symbol>" current "</symbol>"])
+    (into xml-output ["<symbol>" current "</symbol>\n"])
   (if (= current "<")
-    (into xml-output ["<symbol>" current "</symbol>"])
+    (into xml-output ["<symbol>" current "</symbol>\n"])
   (if (= current ">")
-    (into xml-output ["<symbol>" current "</symbol>"])
+    (into xml-output ["<symbol>" current "</symbol>\n"])
   (if (= current "=")
-    (into xml-output ["<symbol>" current "</symbol>"])
+    (into xml-output ["<symbol>" current "</symbol>\n"])
     ; else 
-    (into (into xml-output ["</expression>"])
+    (into (into xml-output ["</expression>\n"])
       (callback full xml-output (first callbackTunnel))))))))))))))
 
 (defn compile-term
   [[current & remaining :as full] xml-output callback & callbackTunnel]
   (if (re-matches integer-constant-regex current)
-    (into (into xml-output ["<expression>" "<term>" "<integerConstant>" current "</integerConstant>" "</term>"])
+    (into (into xml-output ["<expression>\n" "<term>\n" "<integerConstant>" current "</integerConstant>\n" "</term>\n"])
       (compile-expression remaining xml-output callback (first callbackTunnel)))
   (if (re-matches string-constant-regex current)
-    (into (into xml-output ["<term>" "<stringConstant>" current "</stringConstant>" "</term>"])
+    (into (into xml-output ["<term>\n" "<stringConstant>" current "</stringConstant>\n" "</term>\n"])
       (compile-expression remaining xml-output callback (first callbackTunnel)))
   (if (re-matches keyword-constant-regex current)
-    (into (into xml-output ["<term>" "<keywordConstant>" current "</keywordConstant>" "</term>"])
+    (into (into xml-output ["<term>\n" "<keywordConstant>" current "</keywordConstant>\n" "</term>\n"])
       (compile-expression remaining xml-output callback (first callbackTunnel)))
   (if (re-matches identifier-regex current)
-    (into (into xml-output ["<term>" "<identifier>" current "</identifier>"])
+    (into (into xml-output ["<term>\n" "<identifier>" current "</identifier>\n" "</term>\n"])
       (compile-expression remaining xml-output callback (first callbackTunnel))))))))
   ;   (let [first-ahead (head remaining) second-ahead (second remaining)]
   ;     (if (= look-ahead ".")
-  ;       (into xml-output ["term" "<identifier>" current "</identifier" "<symbol>" "." "</symbol>"
-  ;         "<identifier>" second-ahead "</identifier>" "("]))))))))
+  ;       (into xml-output ["term" "<identifier>" current "</identifier" "<symbol>" "." "</symbol>\n"
+  ;         "<identifier>" second-ahead "</identifier>\n" "("]))))))))
 
 ; Needs to handle expressions
 (defn compile-let-statement
   [[current & remaining :as full] xml-output & extra]
   (if (= current "let")
-    (into (into xml-output ["<letStatement>" "<keyword>" "let" "</keyword>"])
+    (into (into xml-output ["<letStatement>\n" "<keyword>" "let" "</keyword>\n"])
       (compile-let-statement remaining xml-output))
   (if (re-matches identifier-regex current)
-    (into (into xml-output ["<identifier>" current "</identifier>"])
+    (into (into xml-output ["<identifier>" current "</identifier>\n"])
       (compile-let-statement remaining xml-output))
   (if (= current "=")
-    (into (into xml-output ["<symbol>" "=" "</symbol>"])
+    (into (into xml-output ["<symbol>" "=" "</symbol>\n"])
       (compile-expression remaining xml-output compile-let-statement))
   (if (= current ";")
-    (into (into xml-output ["<symbol>" current "</symbol>" "</letStatement>"])
+    (into (into xml-output ["<symbol>" current "</symbol>\n" "</letStatement>\n"])
       (compile-statements remaining xml-output)))))))
 
 (defn compile-do-statement
   [[current & remaining :as full] xml-output & extra]
   (if (= current "do")
-    (into (into xml-output ["<doStatement>" "<keyword>" "do" "</keyword>"])
+    (into (into xml-output ["<doStatement>\n" "<keyword>" "do" "</keyword>\n"])
       (compile-do-statement remaining xml-output))
   (if (= current ";")
-    (into (into xml-output ["<symbol>" ";" "</symbol>" "</doStatement>"])
+    (into (into xml-output ["<symbol>" ";" "</symbol>\n" "</doStatement>\n"])
       (compile-statements remaining xml-output))
   (if (re-matches identifier-regex current) 
     (into xml-output (compile-subroutine-call full xml-output compile-do-statement))))))
@@ -267,16 +270,16 @@
   (println "callback: " callback)
   (println "first full: " (first full))
   (if (re-matches identifier-regex current)
-    (into (into xml-output ["<identifier>" current "</identifier>"])
+    (into (into xml-output ["<identifier>" current "</identifier>\n"])
       (compile-subroutine-call remaining xml-output callback))
   (if (= current "(")
-    (into (into xml-output ["<symbol>" current "</symbol>"])
-      (compile-expression-list remaining xml-output callback))  
+    (into (into xml-output ["<symbol>" current "</symbol>\n"])
+      (compile-expression-list full xml-output callback))  
   (if (= current ")")
-    (into (into xml-output ["<symbol>" current "</symbol>"])
+    (into (into xml-output ["<symbol>" current "</symbol>\n"])
       (compile-subroutine-call remaining xml-output callback))
   (if (= current ".")
-    (into (into xml-output ["<symbol>" current "</symbol>"])
+    (into (into xml-output ["<symbol>" current "</symbol>\n"])
       (compile-subroutine-call remaining xml-output callback))
   (if (= current ";")
     (do
@@ -287,7 +290,7 @@
 (defn compile-return-statement
   [[current & remaining :as full] xml-output & extra]
   (if (= current "return")
-    (into (into xml-output ["<returnStatement>" "<keyword>" "return" "</keyword>"])
+    (into (into xml-output ["<returnStatement>\n" "<keyword>" "return" "</keyword>\n"])
       (compile-return-statement remaining xml-output))
   (if (or (re-matches integer-constant-regex current) 
           (re-matches string-constant-regex current) 
@@ -295,28 +298,28 @@
           (re-matches identifier-regex current))
     (into xml-output (compile-expression full xml-output compile-return-statement))
   (if (= current ";")
-    (into (into xml-output ["<symbol>" ";" "</symbol>" "</returnStatement>"])
+    (into (into xml-output ["<symbol>" ";" "</symbol>\n" "</returnStatement>\n"])
       (compile-statements remaining xml-output))))))
 
 (defn compile-if-statement
   [[current & remaining :as full] xml-output & extra]
   (def compile-statements-callback compile-if-statement)
   (if (= current "if")
-    (into (into xml-output ["<ifStatement>" "<keyword>" "if" "</keyword>"])
+    (into (into xml-output ["<ifStatement>\n" "<keyword>" "if" "</keyword>\n"])
       (compile-if-statement remaining xml-output))
   (if (= current "(")
-    (into (into xml-output ["<symbol>" current "</symbol>"])
+    (into (into xml-output ["<symbol>" current "</symbol>\n"])
       (compile-expression remaining xml-output compile-if-statement))
   (if (= current ")")
-    (into (into xml-output ["<symbol>" current "</symbol>"])
+    (into (into xml-output ["<symbol>" current "</symbol>\n"])
       (compile-if-statement remaining xml-output))
   (if (= current "{")
-    (into (into xml-output ["<symbol>" current "</symbol>"])
+    (into (into xml-output ["<symbol>" current "</symbol>\n" "<statements>\n"])
       (compile-statements remaining xml-output))
   (if (= current "}")
     (do
       (def compile-statements-callback compile-subroutine-body)
-      (into (into xml-output ["<symbol>" current "</symbol>" "</ifStatement>"])
+      (into (into xml-output ["<symbol>" current "</symbol>\n" "</ifStatement>\n"])
         (compile-statements remaining xml-output)))))))))
 
 (defn compile-statements
@@ -332,7 +335,8 @@
   (if (= current "return")
     (into xml-output (compile-return-statement full xml-output))
   (if (= current "}")
-    (into xml-output (compile-statements-callback full xml-output)))))))))
+    (into (into xml-output ["</statements>\n"])
+      (compile-statements-callback full xml-output)))))))))
 
 (defn compile-subroutine-body
   [[current & remaining :as full] xml-output]
@@ -340,50 +344,51 @@
   (if (= current "var")
     (into xml-output (compile-var-dec full xml-output))
   (if (or (= current "let") (= current "if") (= current "while") (= current "do") (= current "do"))
-    (into xml-output (compile-statements full xml-output))
+    (into (into xml-output ["<statements>\n"])
+      (compile-statements full xml-output))
   (if (= current "}")
-    (into xml-output (compile-subroutine-dec remaining xml-output))))))
+      (into xml-output (compile-subroutine-dec full xml-output))))))
   ; (if (= current "function")
-  ;   (into (into xml-output ["<subroutineDec>" "<keyword>" "function" "</keyword>"])
+  ;   (into (into xml-output ["<subroutineDec>\n" "<keyword>" "function" "</keyword>\n"])
   ;         (compile-subroutine-dec remaining xml-output)))))
 
 (defn compile-subroutine-dec
   [[current & remaining :as full] xml-output]
   (if (= current "constructor")
-    (into (into xml-output ["<subroutineDec>" "<keyword>" "constructor" "</keyword>"])
+    (into (into xml-output ["<subroutineDec>\n" "<keyword>" "constructor" "</keyword>\n"])
           (compile-subroutine-dec remaining xml-output))
   (if (= current "function")
-    (into (into xml-output ["<subroutineDec>" "<keyword>" "function" "</keyword>"])
+    (into (into xml-output ["<subroutineDec>\n" "<keyword>" "function" "</keyword>\n"])
           (compile-subroutine-dec remaining xml-output))
   (if (= current "method")
-    (into (into xml-output ["<subroutineDec>" "<keyword>" "method" "</keyword>"])
+    (into (into xml-output ["<subroutineDec>\n" "<keyword>" "method" "</keyword>\n"])
           (compile-subroutine-dec remaining xml-output))
   (if (= current "int")
-    (into (into xml-output ["<keyword>" current "</keyword>"])
+    (into (into xml-output ["<keyword>" current "</keyword>\n"])
         (into xml-output (compile-subroutine-dec remaining xml-output)))
   (if (= current "char")
-    (into (into xml-output ["<keyword>" current "</keyword>"])
+    (into (into xml-output ["<keyword>" current "</keyword>\n"])
         (into xml-output (compile-subroutine-dec remaining xml-output)))
   (if (= current "boolean")
-    (into (into xml-output ["<keyword>" current "</keyword>"])
+    (into (into xml-output ["<keyword>" current "</keyword>\n"])
         (into xml-output (compile-subroutine-dec remaining xml-output)))
   (if (= current "void")
-    (into (into xml-output ["<keyword>" current "</keyword>"])
+    (into (into xml-output ["<keyword>" current "</keyword>\n"])
         (into xml-output (compile-subroutine-dec remaining xml-output)))
   (if (= current "(")
-    (into (into xml-output ["<symbol>" current "</symbol>" "<parameterList>"])
+    (into (into xml-output ["<symbol>" current "</symbol>\n" "<parameterList>\n"])
         (into xml-output (compile-parameter-list remaining xml-output)))
   (if (= current ")")
-    (into (into xml-output ["</parameterList>" "<symbol>" current "</symbol>"])
+    (into (into xml-output ["</parameterList>\n" "<symbol>" current "</symbol>\n"])
         (into xml-output (compile-subroutine-dec remaining xml-output)))
   (if (= current "{")
-    (into (into xml-output ["<symbol>" current "</symbol>"])
+    (into (into xml-output ["<subroutineBody>\n" "<symbol>" current "</symbol>\n"])
         (compile-subroutine-body remaining xml-output))
   (if (= current "}")
-    (into (into xml-output ["<symbol>" current "</symbol>" "/<subroutineDec>"])
-        (compile-class full xml-output))
+    (into (into xml-output ["<symbol>" current "</symbol>\n" "</subroutineBody>\n" "</subroutineDec>\n"])
+        (compile-class remaining xml-output))
   (if (re-matches identifier-regex current)
-    (into (into xml-output ["<identifier>" current "</identifier>"])
+    (into (into xml-output ["<identifier>" current "</identifier>\n"])
         (into xml-output (compile-subroutine-dec remaining xml-output))))))))))))))))
 
 (defn compile-class
@@ -391,19 +396,19 @@
   (let [var-dec-regex #"static|field"
         subroutine-dec-regex #"constructor|function|method"]
     (if (= current "class")
-      (into (into xml-output ["<class>" "<keyword>" "class" "</keyword>"])
+      (into (into xml-output ["<class>\n" "<keyword>" "class" "</keyword>\n"])
             (compile-class remaining xml-output))
     (if (= current "{")
-      (into (into xml-output ["<symbol>" "{" "</symbol>"])
+      (into (into xml-output ["<symbol>" "{" "</symbol>\n"])
             (compile-class remaining xml-output))
     (if (re-matches var-dec-regex current)
       (into xml-output (compile-class-var-dec full xml-output))
     (if (re-matches subroutine-dec-regex current)
       (into xml-output (compile-subroutine-dec full xml-output))
     (if (= current "}")
-      (into xml-output ["<symbol>" "}" "</symbol>" "</class>"])
+      (into xml-output ["<symbol>" "}" "</symbol>\n" "</class>\n"])
     (if (re-matches identifier-regex current)
-      (into (into xml-output ["<identifier>" current "</identifier>"])
+      (into (into xml-output ["<identifier>" current "</identifier>\n"])
             (compile-class remaining xml-output))))))))))
   
 ; (defn compile-statement
@@ -438,30 +443,30 @@
 
 ; (defn compile-expression)
 
-(def compilation-functions {"class" {:head ["<class>" "<keyword>" "class" "</keyword>"]
+(def compilation-functions {"class" {:head ["<class>" "<keyword>" "class" "</keyword>\n"]
                                      :tail ["</class>"]}
-                            "function" {:head ["<subroutineDec>" "<keyword>" "function" "</keyword>"]
+                            "function" {:head ["<subroutineDec>\n" "<keyword>" "function" "</keyword>\n"]
                                      :tail ["</subroutineDec>"]}
-                            "void" {:head ["<keyword>" "void" "</keyword>"]}
-                            "{" {:head ["<symbol>" "{" "</symbol>"]}
-                            "}" {:head ["<symbol>" "}" "</symbol>"]}
-                            "(" {:head ["<symbol>" "(" "</symbol>"]}
-                            ")" {:head ["<symbol>" ")" "</symbol>"]}
-                            "[" {:head ["<symbol>" "[" "</symbol>"]}
-                            "]" {:head ["<symbol>" "]" "</symbol>"]}
-                            "." {:head ["<symbol>" "." "</symbol>"]}
-                            "," {:head ["<symbol>" "," "</symbol>"]}
-                            ";" {:head ["<symbol>" ";" "</symbol>"]}
-                            "+" {:head ["<symbol>" "+" "</symbol>"]}
-                            "-" {:head ["<symbol>" "-" "</symbol>"]}
-                            "*" {:head ["<symbol>" "*" "</symbol>"]}
-                            "/" {:head ["<symbol>" "/" "</symbol>"]}
-                            "&" {:head ["<symbol>" "&" "</symbol>"]}
-                            "|" {:head ["<symbol>" "|" "</symbol>"]}
-                            ">" {:head ["<symbol>" ">" "</symbol>"]}
-                            "<" {:head ["<symbol>" ">" "</symbol>"]}
-                            "=" {:head ["<symbol>" "=" "</symbol>"]}
-                            "~" {:head ["<symbol>" "~" "</symbol>"]}})
+                            "void" {:head ["<keyword>" "void" "</keyword>\n"]}
+                            "{" {:head ["<symbol>" "{" "</symbol>\n"]}
+                            "}" {:head ["<symbol>" "}" "</symbol>\n"]}
+                            "(" {:head ["<symbol>" "(" "</symbol>\n"]}
+                            ")" {:head ["<symbol>" ")" "</symbol>\n"]}
+                            "[" {:head ["<symbol>" "[" "</symbol>\n"]}
+                            "]" {:head ["<symbol>" "]" "</symbol>\n"]}
+                            "." {:head ["<symbol>" "." "</symbol>\n"]}
+                            "," {:head ["<symbol>" "," "</symbol>\n"]}
+                            ";" {:head ["<symbol>" ";" "</symbol>\n"]}
+                            "+" {:head ["<symbol>" "+" "</symbol>\n"]}
+                            "-" {:head ["<symbol>" "-" "</symbol>\n"]}
+                            "*" {:head ["<symbol>" "*" "</symbol>\n"]}
+                            "/" {:head ["<symbol>" "/" "</symbol>\n"]}
+                            "&" {:head ["<symbol>" "&" "</symbol>\n"]}
+                            "|" {:head ["<symbol>" "|" "</symbol>\n"]}
+                            ">" {:head ["<symbol>" ">" "</symbol>\n"]}
+                            "<" {:head ["<symbol>" ">" "</symbol>\n"]}
+                            "=" {:head ["<symbol>" "=" "</symbol>\n"]}
+                            "~" {:head ["<symbol>" "~" "</symbol>\n"]}})
 
 (defn -main
   "I don't do a whole lot ... yet."
