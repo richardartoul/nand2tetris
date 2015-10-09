@@ -282,9 +282,8 @@
     (into (into xml-output ["<symbol>" current "</symbol>\n"])
       (compile-subroutine-call remaining xml-output callback))
   (if (= current ";")
+    ; can probably remove this
     (do
-    ; (println callback)
-    ; (println (first full))
     (into xml-output (callback full xml-output)))))))))
 
 (defn compile-return-statement
@@ -303,7 +302,6 @@
 
 (defn compile-if-statement
   [[current & remaining :as full] xml-output & extra]
-  ; (def compile-statements-callback (conj compile-statements-callback compile-if-statement))
   (if (= current "if")
     (into (into xml-output ["<ifStatement>\n" "<keyword>" "if" "</keyword>\n"])
       (compile-if-statement remaining xml-output))
@@ -318,8 +316,6 @@
     (into (into xml-output ["<symbol>" current "</symbol>\n" "<statements>\n"])
       (compile-statements remaining xml-output)))
   (if (= current "}")
-    ; (do
-      ; (def compile-statements-callback (conj compile-statements-callback compile-subroutine-body))
       (into (into xml-output ["<symbol>" current "</symbol>\n" "</ifStatement>\n"])
         (compile-statements remaining xml-output))))))))
 
@@ -339,8 +335,6 @@
     (into (into xml-output ["<symbol>" current "</symbol>\n" "<statements>\n"])
       (compile-statements remaining xml-output)))
   (if (= current "}")
-    ; (do
-      ; (def compile-statements-callback (conj compile-statements-callback compile-subroutine-body))
       (into (into xml-output ["<symbol>" current "</symbol>\n" "</whileStatement>\n"])
         (compile-statements remaining xml-output))))))))
 
@@ -374,9 +368,6 @@
       (compile-statements full xml-output))
   (if (= current "}")
       (into xml-output (compile-subroutine-dec full xml-output))))))
-  ; (if (= current "function")
-  ;   (into (into xml-output ["<subroutineDec>\n" "<keyword>" "function" "</keyword>\n"])
-  ;         (compile-subroutine-dec remaining xml-output)))))
 
 (defn compile-subroutine-dec
   [[current & remaining :as full] xml-output]
@@ -436,63 +427,6 @@
     (if (re-matches identifier-regex current)
       (into (into xml-output ["<identifier>" current "</identifier>\n"])
             (compile-class remaining xml-output))))))))))
-  
-; (defn compile-statement
-;   [current remaining xml-output]
-;   (if (= current "if")
-;     (compile-if-statement remaining xml-output))
-;   (if (= current "while")
-;     (compile-while-statement remaining xml-output))
-;   (if (= current "do")
-;     (compile-do-statement remaining xml-output))
-;   (if (= current "let")
-;     (compile-while-statement remaining xml-output))
-;   (if (= current "return")
-;     (compile-return-statement remaining xml-output)))
-
-; (defn compile-while-statement
-;   [remaining xml-output])
-
-; (defn compile-let-statement
-;   [remaining xml-output])
-
-; (defn compile-do-statement
-;   [remaining xml-output])
-
-; (defn compile-return-statement
-;   [remaining xml-output])
-
-; (defn compile-if-statement
-;   [remaining xml-output])
-
-; (defn compile-sequence-statement)
-
-; (defn compile-expression)
-
-(def compilation-functions {"class" {:head ["<class>" "<keyword>" "class" "</keyword>\n"]
-                                     :tail ["</class>"]}
-                            "function" {:head ["<subroutineDec>\n" "<keyword>" "function" "</keyword>\n"]
-                                     :tail ["</subroutineDec>"]}
-                            "void" {:head ["<keyword>" "void" "</keyword>\n"]}
-                            "{" {:head ["<symbol>" "{" "</symbol>\n"]}
-                            "}" {:head ["<symbol>" "}" "</symbol>\n"]}
-                            "(" {:head ["<symbol>" "(" "</symbol>\n"]}
-                            ")" {:head ["<symbol>" ")" "</symbol>\n"]}
-                            "[" {:head ["<symbol>" "[" "</symbol>\n"]}
-                            "]" {:head ["<symbol>" "]" "</symbol>\n"]}
-                            "." {:head ["<symbol>" "." "</symbol>\n"]}
-                            "," {:head ["<symbol>" "," "</symbol>\n"]}
-                            ";" {:head ["<symbol>" ";" "</symbol>\n"]}
-                            "+" {:head ["<symbol>" "+" "</symbol>\n"]}
-                            "-" {:head ["<symbol>" "-" "</symbol>\n"]}
-                            "*" {:head ["<symbol>" "*" "</symbol>\n"]}
-                            "/" {:head ["<symbol>" "/" "</symbol>\n"]}
-                            "&" {:head ["<symbol>" "&" "</symbol>\n"]}
-                            "|" {:head ["<symbol>" "|" "</symbol>\n"]}
-                            ">" {:head ["<symbol>" ">" "</symbol>\n"]}
-                            "<" {:head ["<symbol>" ">" "</symbol>\n"]}
-                            "=" {:head ["<symbol>" "=" "</symbol>\n"]}
-                            "~" {:head ["<symbol>" "~" "</symbol>\n"]}})
 
 (defn -main
   "I don't do a whole lot ... yet."
