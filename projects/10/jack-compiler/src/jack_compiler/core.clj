@@ -81,7 +81,7 @@
 
 (declare compile-class-var-dec)
 
-(def compile-statements-callback nil)
+(def compile-statements-callback [])
 
 (declare compile-subroutine-dec)
 (declare compile-subroutine-body)
@@ -123,7 +123,7 @@
 (defn compile-var-dec
   [[current & remaining] xml-output]
   (if (= current "var")
-    (into (into xml-output ["<VarDec>" "<keyword>" current "</keyword>\n"])
+    (into (into xml-output ["<varDec>\n" "<keyword>" current "</keyword>\n"])
           (into xml-output (compile-var-dec remaining xml-output)))
   (if (= current "int")
     (into (into xml-output ["<keyword>" current "</keyword>\n"])
@@ -141,7 +141,7 @@
     (into (into xml-output ["<symbol>" current "</symbol>\n"])
         (into xml-output (compile-var-dec remaining xml-output)))
   (if (= current ";")
-    (into (into xml-output ["<symbol>" current "</symbol>\n" "</VarDec>\n"])
+    (into (into xml-output ["<symbol>" current "</symbol>\n" "</varDec>\n"])
         (into xml-output (compile-subroutine-body remaining xml-output)))))))))))
 
 (defn compile-parameter-list
@@ -303,7 +303,7 @@
 
 (defn compile-if-statement
   [[current & remaining :as full] xml-output & extra]
-  (def compile-statements-callback compile-if-statement)
+  ; (def compile-statements-callback (conj compile-statements-callback compile-if-statement))
   (if (= current "if")
     (into (into xml-output ["<ifStatement>\n" "<keyword>" "if" "</keyword>\n"])
       (compile-if-statement remaining xml-output))
@@ -314,13 +314,35 @@
     (into (into xml-output ["<symbol>" current "</symbol>\n"])
       (compile-if-statement remaining xml-output))
   (if (= current "{")
+    (do (def compile-statements-callback (conj compile-statements-callback compile-if-statement))
     (into (into xml-output ["<symbol>" current "</symbol>\n" "<statements>\n"])
-      (compile-statements remaining xml-output))
+      (compile-statements remaining xml-output)))
   (if (= current "}")
-    (do
-      (def compile-statements-callback compile-subroutine-body)
+    ; (do
+      ; (def compile-statements-callback (conj compile-statements-callback compile-subroutine-body))
       (into (into xml-output ["<symbol>" current "</symbol>\n" "</ifStatement>\n"])
-        (compile-statements remaining xml-output)))))))))
+        (compile-statements remaining xml-output))))))))
+
+(defn compile-while-statement
+  [[current & remaining :as full] xml-output & extra]
+  (if (= current "while")
+    (into (into xml-output ["<whileStatement>\n" "<keyword>" "while" "</keyword>\n"])
+      (compile-while-statement remaining xml-output))
+  (if (= current "(")
+    (into (into xml-output ["<symbol>" current "</symbol>\n"])
+      (compile-expression remaining xml-output compile-while-statement))
+  (if (= current ")")
+    (into (into xml-output ["<symbol>" current "</symbol>\n"])
+      (compile-while-statement remaining xml-output))
+  (if (= current "{")
+    (do (def compile-statements-callback (conj compile-statements-callback compile-while-statement))
+    (into (into xml-output ["<symbol>" current "</symbol>\n" "<statements>\n"])
+      (compile-statements remaining xml-output)))
+  (if (= current "}")
+    ; (do
+      ; (def compile-statements-callback (conj compile-statements-callback compile-subroutine-body))
+      (into (into xml-output ["<symbol>" current "</symbol>\n" "</whileStatement>\n"])
+        (compile-statements remaining xml-output))))))))
 
 (defn compile-statements
   [[current & remaining :as full] xml-output]
@@ -335,12 +357,16 @@
   (if (= current "return")
     (into xml-output (compile-return-statement full xml-output))
   (if (= current "}")
-    (into (into xml-output ["</statements>\n"])
-      (compile-statements-callback full xml-output)))))))))
+    (do
+      (let [next-callback (first compile-statements-callback)]
+      (println "calling to " next-callback)
+      (def compile-statements-callback (drop 1 compile-statements-callback))
+      (into (into xml-output ["</statements>\n"])
+        (next-callback full xml-output)))))))))))
 
 (defn compile-subroutine-body
   [[current & remaining :as full] xml-output]
-  (def compile-statements-callback compile-subroutine-body)
+  (def compile-statements-callback (conj compile-statements-callback compile-subroutine-body))
   (if (= current "var")
     (into xml-output (compile-var-dec full xml-output))
   (if (or (= current "let") (= current "if") (= current "while") (= current "do") (= current "do"))
